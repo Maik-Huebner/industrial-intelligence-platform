@@ -181,6 +181,7 @@ presentation/                 Zehn-Minuten-Präsentation und Demo-Unterlagen
 ## Dokumentation
 
 - [Final Quality Audit](docs/audit/FINAL_QUALITY_AUDIT.md)
+- [GitHub Release Report](docs/audit/GITHUB_RELEASE_REPORT.md)
 - [Release Readiness](docs/audit/RELEASE_READINESS.md)
 - [Audit der 13 Unterrichtsthemen](docs/audit/COURSE_COVERAGE_AUDIT.md)
 - [Architektur- und Datenintegritätsaudit](docs/audit/ARCHITECTURE_AUDIT.md)
