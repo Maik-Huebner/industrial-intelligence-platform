@@ -1,0 +1,49 @@
+{
+  "evidence_date": "2026-10-19",
+  "profile": "full",
+  "seed": 20261019,
+  "data": {
+    "sensor_readings_generated": 1000000,
+    "sensor_readings_valid": 994905,
+    "sensor_readings_quarantined": 5095,
+    "machines": 50,
+    "production_orders": 600,
+    "maintenance_records": 320,
+    "failure_events": 180,
+    "spark_feature_rows": 4950
+  },
+  "persistence": {
+    "mongodb_sensor_documents": 1000000,
+    "postgres_machine_metrics": 50,
+    "postgres_ml_predictions": 1000,
+    "neo4j_nodes": 270,
+    "neo4j_relationships": 400
+  },
+  "airflow": {
+    "dag_id": "industrial_etl",
+    "import_errors": 0,
+    "full_profile_dag_test": "success",
+    "postgres_rows_written": 1050,
+    "neo4j_source_rows_synchronized": 200
+  },
+  "tests": {
+    "fast_passed": 12,
+    "fast_deselected": 4,
+    "coverage_percent": 53,
+    "container_integration_passed": 4
+  },
+  "model_metrics": {
+    "logistic_accuracy": 0.76,
+    "logistic_f1": 0.6563636363636364,
+    "decision_tree_accuracy": 0.742,
+    "decision_tree_f1": 0.6633985912315444,
+    "regression_rmse_c": 0.5212466108067155,
+    "regression_mae_c": 0.4430003911843642,
+    "regression_baseline_rmse_c": 3.5364868642297838,
+    "kmeans_silhouette": 0.36206438240385647
+  },
+  "publication": {
+    "status": "blocked",
+    "reason": "GitHub CLI token invalid; authorized login not verified"
+  }
+}

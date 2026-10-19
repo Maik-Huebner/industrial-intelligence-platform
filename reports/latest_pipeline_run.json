@@ -1,0 +1,109 @@
+{
+  "run_id": "local-20261019T063127Z",
+  "status": "success",
+  "profile": "full",
+  "seed": 20261019,
+  "generated": {
+    "profile": "full",
+    "seed": 20261019,
+    "sensor_readings": 1000000,
+    "machines": 50,
+    "maintenance_records": 320,
+    "failure_events": 180,
+    "production_orders": 600
+  },
+  "quality": {
+    "valid": 994905,
+    "rejected": 5095,
+    "duplicates": 0,
+    "reasons": {
+      "missing_temperature_c": 1757,
+      "out_of_range_temperature_c": 1693,
+      "unknown_machine_id": 1645
+    }
+  },
+  "machines_scored": 50,
+  "high_risk_machines": 0,
+  "highest_risk": [
+    {
+      "machine_id": "M-017",
+      "measurement_count": 19908,
+      "avg_temperature_c": 56.4662,
+      "max_temperature_c": 86.623,
+      "temperature_stddev": 6.1563,
+      "avg_vibration_mm_s": 3.9311,
+      "avg_load_pct": 62.9869,
+      "anomaly_rate": 0.387081,
+      "failure_count": 16,
+      "maintenance_count": 6,
+      "risk_score": 0.580599,
+      "risk_label": "medium",
+      "score_method": "transparent-rule-baseline-v1"
+    },
+    {
+      "machine_id": "M-046",
+      "measurement_count": 19886,
+      "avg_temperature_c": 55.6821,
+      "max_temperature_c": 84.536,
+      "temperature_stddev": 5.9116,
+      "avg_vibration_mm_s": 3.759,
+      "avg_load_pct": 62.9458,
+      "anomaly_rate": 0.386252,
+      "failure_count": 16,
+      "maintenance_count": 7,
+      "risk_score": 0.557686,
+      "risk_label": "medium",
+      "score_method": "transparent-rule-baseline-v1"
+    },
+    {
+      "machine_id": "M-007",
+      "measurement_count": 19886,
+      "avg_temperature_c": 55.4389,
+      "max_temperature_c": 83.096,
+      "temperature_stddev": 5.7834,
+      "avg_vibration_mm_s": 3.6934,
+      "avg_load_pct": 63.0013,
+      "anomaly_rate": 0.387358,
+      "failure_count": 16,
+      "maintenance_count": 7,
+      "risk_score": 0.550402,
+      "risk_label": "medium",
+      "score_method": "transparent-rule-baseline-v1"
+    },
+    {
+      "machine_id": "M-039",
+      "measurement_count": 19884,
+      "avg_temperature_c": 55.3413,
+      "max_temperature_c": 85.531,
+      "temperature_stddev": 5.7215,
+      "avg_vibration_mm_s": 3.664,
+      "avg_load_pct": 63.0586,
+      "anomaly_rate": 0.387045,
+      "failure_count": 16,
+      "maintenance_count": 6,
+      "risk_score": 0.546883,
+      "risk_label": "medium",
+      "score_method": "transparent-rule-baseline-v1"
+    },
+    {
+      "machine_id": "M-028",
+      "measurement_count": 19903,
+      "avg_temperature_c": 55.1083,
+      "max_temperature_c": 83.289,
+      "temperature_stddev": 5.7041,
+      "avg_vibration_mm_s": 3.62,
+      "avg_load_pct": 62.9755,
+      "anomaly_rate": 0.387027,
+      "failure_count": 16,
+      "maintenance_count": 6,
+      "risk_score": 0.540693,
+      "risk_label": "medium",
+      "score_method": "transparent-rule-baseline-v1"
+    }
+  ],
+  "duration_seconds": 14.862,
+  "limitations": [
+    "Local score is an explainable baseline, not the Spark MLlib model.",
+    "Database persistence and graph synchronization require the container stack."
+  ]
+}

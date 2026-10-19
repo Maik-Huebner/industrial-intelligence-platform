@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "quality": {
+    "valid": 994905,
+    "rejected": 5095,
+    "gate": "passed"
+  },
+  "postgres_rows": 1050,
+  "neo4j_rows": 200
+}

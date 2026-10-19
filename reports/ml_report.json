@@ -1,0 +1,155 @@
+{
+  "generated_at": "2026-10-19T07:12:42.582803+00:00",
+  "validation": {
+    "strategy": "chronological_holdout",
+    "cutoff": "2026-09-27",
+    "random_split_demonstration": [
+      4003,
+      947
+    ]
+  },
+  "counts": {
+    "all": 4950,
+    "train": 3950,
+    "test": 1000
+  },
+  "features": [
+    "avg_temperature_c",
+    "temperature_stddev",
+    "avg_vibration_mm_s",
+    "max_vibration_mm_s",
+    "avg_power_kw",
+    "avg_load_pct",
+    "anomaly_rate",
+    "machine_age_years",
+    "criticality",
+    "maintenance_count",
+    "machine_type via StringIndexer for classification"
+  ],
+  "class_balance": {
+    "0.0": 1891,
+    "1.0": 3059
+  },
+  "classification": {
+    "metrics": {
+      "accuracy": 0.76,
+      "decision_tree_accuracy": 0.742,
+      "precision": 0.5776,
+      "decision_tree_precision": 0.6414531130320604,
+      "recall": 0.76,
+      "decision_tree_recall": 0.742,
+      "f1": 0.6563636363636364,
+      "decision_tree_f1": 0.6633985912315444
+    },
+    "confusion_matrix": [
+      {
+        "actual": 0.0,
+        "predicted": 1.0,
+        "count": 240
+      },
+      {
+        "actual": 1.0,
+        "predicted": 1.0,
+        "count": 760
+      }
+    ]
+  },
+  "regression": {
+    "rmse": 0.5212466108067155,
+    "mae": 0.4430003911843642,
+    "baseline_rmse": 3.5364868642297838
+  },
+  "clustering": {
+    "silhouette": 0.36206438240385647,
+    "distribution": {
+      "1": 85,
+      "2": 1866,
+      "0": 1999
+    },
+    "profiles": [
+      {
+        "prediction": 0,
+        "avg_temperature_c": 54.03644837017827,
+        "temperature_stddev": 3.921743060442137,
+        "avg_vibration_mm_s": 3.2787866499593314,
+        "max_vibration_mm_s": 7.559486743371688,
+        "avg_power_kw": 28.348621010574345,
+        "avg_load_pct": 65.91601360880583,
+        "anomaly_rate": 0.012033090075583099,
+        "machine_age_years": 7.297648824412206,
+        "criticality": 2.9974987493746874,
+        "maintenance_count": 0.06603301650825413
+      },
+      {
+        "prediction": 1,
+        "avg_temperature_c": 59.9727671649938,
+        "temperature_stddev": 4.892122681833865,
+        "avg_vibration_mm_s": 4.774671989482708,
+        "max_vibration_mm_s": 10.02089411764706,
+        "avg_power_kw": 29.692079222663352,
+        "avg_load_pct": 63.11486143010863,
+        "anomaly_rate": 0.9997041028075613,
+        "machine_age_years": 9.2,
+        "criticality": 3.2,
+        "maintenance_count": 0.058823529411764705
+      },
+      {
+        "prediction": 2,
+        "avg_temperature_c": 52.217436351701565,
+        "temperature_stddev": 3.9076078887074472,
+        "avg_vibration_mm_s": 2.9936459428881923,
+        "max_vibration_mm_s": 7.12355573419078,
+        "avg_power_kw": 26.234331647068718,
+        "avg_load_pct": 59.96313633081957,
+        "anomaly_rate": 0.01143395203919737,
+        "machine_age_years": 8.27438370846731,
+        "criticality": 2.9935691318327975,
+        "maintenance_count": 0.06430868167202572
+      }
+    ],
+    "scaled_cluster_centers": [
+      [
+        0.4227264168076324,
+        -0.051277603539583834,
+        0.2688036903591408,
+        0.10918624972267992,
+        0.7589162645511293,
+        0.783922058683038,
+        -0.14605467380813897,
+        -0.11659057818917966,
+        -0.0017684273845252612,
+        0.0038519474115520543
+      ],
+      [
+        3.8529509239153104,
+        3.4518574992493627,
+        4.191267337778271,
+        1.866089948143815,
+        1.8101396910895804,
+        0.019457219561778087,
+        6.732797800358881,
+        0.32492570416276245,
+        0.14140345366666562,
+        -0.024785609207377927
+      ],
+      [
+        -0.6283659891378603,
+        -0.10230651552014401,
+        -0.4788833337294157,
+        -0.20197264672446397,
+        -0.8954638191748701,
+        -0.8406827754395074,
+        -0.15022750272670707,
+        0.1100996146550609,
+        -0.004546734844587,
+        -0.0029974630723825888
+      ]
+    ]
+  },
+  "limitations": [
+    "All training data is synthetic and does not establish real-world maintenance performance.",
+    "The label uses simulated next-day outcomes and anomaly thresholds.",
+    "Linear regression cannot model every nonlinear thermal relationship.",
+    "Cluster names require engineering interpretation after profile review."
+  ]
+}
