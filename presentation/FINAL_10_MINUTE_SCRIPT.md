@@ -1,6 +1,7 @@
 # Finales Zehn-Minuten-Sprecherskript
 
-Zielzeit: **9:35 Minuten plus 25 Sekunden Reserve**.  
+Zielzeit: **9:35 Minuten plus 25 Sekunden Reserve**.
+
 Umfang des gesprochenen Textes: rund 1.100 Wörter. Bei 115–120 Wörtern pro Minute ergibt das etwa 9:10–9:35 Minuten. Die Zeitangaben wurden für kurze Blickpausen und Folienwechsel auf insgesamt 9:35 Minuten geplant.
 
 ## Folie 1 – Industrial Intelligence Platform · 0:00–0:35

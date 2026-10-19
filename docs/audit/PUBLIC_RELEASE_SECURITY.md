@@ -1,6 +1,7 @@
 # Sicherheitsprüfung für eine öffentliche GitHub-Veröffentlichung
 
-Stand: 19. Oktober 2026  
+Stand: 19. Oktober 2026
+
 Prüfumfang: aktueller verfolgter Arbeitsbaum und vollständige lokal erreichbare Git-Historie.
 
 ## Entscheidung
@@ -68,5 +69,6 @@ Vor einem später autorisierten Push sind zwingend:
 
 ## Betriebsabgrenzung
 
-**Public source code: freigabefähig nach obigem finalen Gate.**  
+**Public source code: freigabefähig nach obigem finalen Gate.**
+
 **Publicly reachable deployment: nicht freigabefähig.** Es fehlen Authentifizierung, Autorisierung, TLS, Rate Limits, produktive Secret-Verwaltung, nicht-root App-Ausführung, Schwachstellenscan und Betriebsüberwachung.

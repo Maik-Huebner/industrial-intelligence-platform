@@ -1,7 +1,9 @@
 # Audit der Unterrichtsabdeckung
 
-Stand: 19. Oktober 2026  
-Audit-Branch: `feature/final-quality-audit`  
+Stand: 19. Oktober 2026
+
+Audit-Branch: `feature/final-quality-audit`
+
 Bewertungsschlüssel: **PASS** = implementiert und tatsächlich ausgeführt; **PARTIAL** = implementiert, aber nur teilweise geprüft; **FAIL** = nicht implementiert.
 
 ## Nachweismatrix der 13 Pflichtbereiche

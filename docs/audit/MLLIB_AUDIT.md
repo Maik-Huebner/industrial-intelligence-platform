@@ -1,6 +1,7 @@
 # Spark-MLlib-Audit
 
-Stand: 19. Oktober 2026  
+Stand: 19. Oktober 2026
+
 Primärquelle: `reports/ml_report.json`, erzeugt im realen Full-Spark-Lauf am 19. Oktober 2026 um 11:17 UTC.
 
 ## Kurzurteil
