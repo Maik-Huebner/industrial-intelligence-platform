@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T08:01:41.452034+00:00",
+  "generated_at": "2026-10-19T10:37:21.066815+00:00",
   "validation": {
     "strategy": "chronological_holdout",
     "cutoff": "2026-09-27",
@@ -140,8 +140,8 @@
           "0": 220,
           "1": 730
         },
-        "roc_auc": 0.6202201547004951,
-        "pr_auc": 0.8011291023102062
+        "roc_auc": 0.620220154700495,
+        "pr_auc": 0.8011291023102063
       },
       "engineered_logistic_validation": {
         "accuracy": 0.6105263157894737,
@@ -172,8 +172,8 @@
           "0": 375,
           "1": 575
         },
-        "roc_auc": 0.6262512922010794,
-        "pr_auc": 0.8018915154739255
+        "roc_auc": 0.6262512922010793,
+        "pr_auc": 0.8018915154739256
       }
     },
     "models": {
@@ -261,8 +261,8 @@
         "threshold": 0.58,
         "class_weighting": "inverse_frequency_from_training_only",
         "scale_numeric_features": true,
-        "training_seconds": 1.4190575000829995,
-        "tuning_seconds": 4.89774975227192,
+        "training_seconds": 1.2046277499757707,
+        "tuning_seconds": 5.173169876914471,
         "validation": {
           "accuracy": 0.6105263157894737,
           "macro_f1": 0.5728915545532312,
@@ -292,8 +292,8 @@
             "0": 375,
             "1": 575
           },
-          "roc_auc": 0.6262512922010794,
-          "pr_auc": 0.8018915154739255
+          "roc_auc": 0.6262512922010793,
+          "pr_auc": 0.8018915154739256
         },
         "test": {
           "accuracy": 0.7452631578947368,
@@ -324,8 +324,8 @@
             "0": 60,
             "1": 890
           },
-          "roc_auc": 0.6321256742965446,
-          "pr_auc": 0.8548052667073334
+          "roc_auc": 0.6321256742965445,
+          "pr_auc": 0.8548052667073335
         },
         "feature_importance": [],
         "candidates": [
@@ -337,7 +337,7 @@
             "threshold": 0.64,
             "macro_f1": 0.5161192035771651,
             "balanced_accuracy": 0.5399530392049912,
-            "training_seconds": 3.478692252188921
+            "training_seconds": 3.9685421269387007
           },
           {
             "parameters": {
@@ -347,7 +347,7 @@
             "threshold": 0.58,
             "macro_f1": 0.5728915545532312,
             "balanced_accuracy": 0.5822722998841565,
-            "training_seconds": 1.4190575000829995
+            "training_seconds": 1.2046277499757707
           }
         ]
       },
@@ -359,8 +359,8 @@
         "threshold": 0.44,
         "class_weighting": "inverse_frequency_from_training_only",
         "scale_numeric_features": false,
-        "training_seconds": 0.7463621669448912,
-        "tuning_seconds": 1.549057916738093,
+        "training_seconds": 0.677991374861449,
+        "tuning_seconds": 1.471603250131011,
         "validation": {
           "accuracy": 0.5136842105263157,
           "macro_f1": 0.46741900254823443,
@@ -432,11 +432,11 @@
           },
           {
             "feature": "prior_7d_anomaly_rate",
-            "importance": 0.12190442106938223
+            "importance": 0.12190442106938225
           },
           {
             "feature": "prior_7d_temperature_stddev",
-            "importance": 0.10564019299973802
+            "importance": 0.10564019299973804
           },
           {
             "feature": "max_vibration_mm_s",
@@ -448,11 +448,11 @@
           },
           {
             "feature": "vibration_deviation_7d",
-            "importance": 0.06116814913097154
+            "importance": 0.061168149130971544
           },
           {
             "feature": "anomaly_rate",
-            "importance": 0.05528446349978955
+            "importance": 0.055284463499789466
           },
           {
             "feature": "machine_age_years",
@@ -480,7 +480,7 @@
           },
           {
             "feature": "temperature_deviation_7d",
-            "importance": 0.028990951850972023
+            "importance": 0.028990951850972113
           },
           {
             "feature": "avg_temperature_c",
@@ -496,7 +496,7 @@
             "threshold": 0.5,
             "macro_f1": 0.4358113345049936,
             "balanced_accuracy": 0.5069869766910301,
-            "training_seconds": 0.8026957497932017
+            "training_seconds": 0.793611875269562
           },
           {
             "parameters": {
@@ -506,7 +506,7 @@
             "threshold": 0.44,
             "macro_f1": 0.46741900254823443,
             "balanced_accuracy": 0.4697118456527498,
-            "training_seconds": 0.7463621669448912
+            "training_seconds": 0.677991374861449
           }
         ]
       },
@@ -518,132 +518,132 @@
         "threshold": 0.58,
         "class_weighting": "inverse_frequency_from_training_only",
         "scale_numeric_features": false,
-        "training_seconds": 0.7527028750628233,
-        "tuning_seconds": 0.7527028750628233,
+        "training_seconds": 0.8058910421095788,
+        "tuning_seconds": 0.8058910421095788,
         "validation": {
-          "accuracy": 0.608421052631579,
-          "macro_f1": 0.5086999316016882,
-          "weighted_f1": 0.5935094831317822,
-          "balanced_accuracy": 0.510786956950873,
+          "accuracy": 0.6,
+          "macro_f1": 0.5371794871794872,
+          "weighted_f1": 0.6025128205128205,
+          "balanced_accuracy": 0.5377894140809658,
           "per_class": {
             "0": {
-              "precision": 0.32751091703056767,
-              "recall": 0.25597269624573377,
-              "f1": 0.28735632183908044,
+              "precision": 0.3583061889250814,
+              "recall": 0.37542662116040953,
+              "f1": 0.36666666666666664,
               "support": 293
             },
             "1": {
-              "precision": 0.6976421636615812,
-              "recall": 0.7656012176560122,
-              "f1": 0.7300435413642962,
+              "precision": 0.7153965785381027,
+              "recall": 0.700152207001522,
+              "f1": 0.7076923076923077,
               "support": 657
             }
           },
           "confusion_matrix": {
-            "tn": 75,
-            "fp": 218,
-            "fn": 154,
-            "tp": 503
+            "tn": 110,
+            "fp": 183,
+            "fn": 197,
+            "tp": 460
           },
           "prediction_counts": {
-            "0": 229,
-            "1": 721
+            "0": 307,
+            "1": 643
           },
-          "roc_auc": 0.49841819003537646,
-          "pr_auc": 0.7016525310176549
+          "roc_auc": 0.5455815813943823,
+          "pr_auc": 0.7138063289783503
         },
         "test": {
-          "accuracy": 0.68,
-          "macro_f1": 0.4980150039282759,
-          "weighted_f1": 0.6551838641720376,
-          "balanced_accuracy": 0.5028855032317636,
+          "accuracy": 0.6105263157894737,
+          "macro_f1": 0.48571712832637864,
+          "weighted_f1": 0.6174601595374234,
+          "balanced_accuracy": 0.4856879039704524,
           "per_class": {
             "0": {
-              "precision": 0.24666666666666667,
-              "recall": 0.16228070175438597,
-              "f1": 0.19576719576719578,
+              "precision": 0.2204724409448819,
+              "recall": 0.24561403508771928,
+              "f1": 0.23236514522821575,
               "support": 228
             },
             "1": {
-              "precision": 0.76125,
-              "recall": 0.8434903047091413,
-              "f1": 0.800262812089356,
+              "precision": 0.7528735632183908,
+              "recall": 0.7257617728531855,
+              "f1": 0.7390691114245416,
               "support": 722
             }
           },
           "confusion_matrix": {
-            "tn": 37,
-            "fp": 191,
-            "fn": 113,
-            "tp": 609
+            "tn": 56,
+            "fp": 172,
+            "fn": 198,
+            "tp": 524
           },
           "prediction_counts": {
-            "0": 150,
-            "1": 800
+            "0": 254,
+            "1": 696
           },
-          "roc_auc": 0.47229005685960057,
-          "pr_auc": 0.7454661913660694
+          "roc_auc": 0.48719140302279246,
+          "pr_auc": 0.766016363763749
         },
         "feature_importance": [
           {
             "feature": "prior_7d_avg_temperature_c",
-            "importance": 0.15503819483092426
-          },
-          {
-            "feature": "avg_vibration_mm_s",
-            "importance": 0.06352326567476185
+            "importance": 0.13722624110479942
           },
           {
             "feature": "prior_7d_avg_vibration_mm_s",
-            "importance": 0.0626591465582861
-          },
-          {
-            "feature": "anomaly_rate_deviation_7d",
-            "importance": 0.06212579233755961
-          },
-          {
-            "feature": "avg_power_kw",
-            "importance": 0.061459739716378435
-          },
-          {
-            "feature": "avg_load_pct",
-            "importance": 0.05583778050356356
-          },
-          {
-            "feature": "prior_7d_anomaly_rate",
-            "importance": 0.05332995773170555
-          },
-          {
-            "feature": "max_vibration_mm_s",
-            "importance": 0.05179795419608058
-          },
-          {
-            "feature": "prior_7d_temperature_stddev",
-            "importance": 0.04746295492750083
-          },
-          {
-            "feature": "temperature_stddev",
-            "importance": 0.04681171670700605
+            "importance": 0.08172503406708369
           },
           {
             "feature": "avg_temperature_c",
-            "importance": 0.04656392277933849
+            "importance": 0.059644810982094905
           },
           {
-            "feature": "temperature_change_1d",
-            "importance": 0.04152737868378765
-          },
-          {
-            "feature": "vibration_change_1d",
-            "importance": 0.03889491121834971
-          },
-          {
-            "feature": "anomaly_rate",
-            "importance": 0.0356701155679129
+            "feature": "temperature_deviation_7d",
+            "importance": 0.0564954176922851
           },
           {
             "feature": "vibration_deviation_7d",
-            "importance": 0.03261436071806307
+            "importance": 0.05416266801563972
+          },
+          {
+            "feature": "prior_7d_temperature_stddev",
+            "importance": 0.05267460957249897
+          },
+          {
+            "feature": "max_vibration_mm_s",
+            "importance": 0.05242093398257435
+          },
+          {
+            "feature": "anomaly_rate_deviation_7d",
+            "importance": 0.05095448214864737
+          },
+          {
+            "feature": "temperature_stddev",
+            "importance": 0.050203189045228046
+          },
+          {
+            "feature": "prior_7d_anomaly_rate",
+            "importance": 0.04918338250329416
+          },
+          {
+            "feature": "avg_power_kw",
+            "importance": 0.04750655025661919
+          },
+          {
+            "feature": "avg_vibration_mm_s",
+            "importance": 0.04698761572169889
+          },
+          {
+            "feature": "vibration_change_1d",
+            "importance": 0.046399196206756525
+          },
+          {
+            "feature": "avg_load_pct",
+            "importance": 0.040635193946814384
+          },
+          {
+            "feature": "machine_age_years",
+            "importance": 0.034313601961934524
           }
         ],
         "candidates": [
@@ -653,9 +653,9 @@
               "maxDepth": 5
             },
             "threshold": 0.58,
-            "macro_f1": 0.5086999316016882,
-            "balanced_accuracy": 0.510786956950873,
-            "training_seconds": 0.7527028750628233
+            "macro_f1": 0.5371794871794872,
+            "balanced_accuracy": 0.5377894140809658,
+            "training_seconds": 0.8058910421095788
           }
         ]
       },
@@ -667,8 +667,8 @@
         "threshold": 0.56,
         "class_weighting": "inverse_frequency_from_training_only",
         "scale_numeric_features": false,
-        "training_seconds": 2.824086458887905,
-        "tuning_seconds": 2.824086458887905,
+        "training_seconds": 2.8641214170493186,
+        "tuning_seconds": 2.8641214170493186,
         "validation": {
           "accuracy": 0.5368421052631579,
           "macro_f1": 0.4758778419207447,
@@ -698,45 +698,45 @@
             "0": 333,
             "1": 617
           },
-          "roc_auc": 0.46135344751455837,
-          "pr_auc": 0.689020910844308
+          "roc_auc": 0.4618885096700796,
+          "pr_auc": 0.690388847817676
         },
         "test": {
-          "accuracy": 0.5831578947368421,
-          "macro_f1": 0.4965634635149024,
-          "weighted_f1": 0.6051361767728675,
-          "balanced_accuracy": 0.5036934441366574,
+          "accuracy": 0.5842105263157895,
+          "macro_f1": 0.4973039954452594,
+          "weighted_f1": 0.6059921631668843,
+          "balanced_accuracy": 0.5043859649122807,
           "per_class": {
             "0": {
-              "precision": 0.24390243902439024,
+              "precision": 0.24464831804281345,
               "recall": 0.3508771929824561,
-              "f1": 0.28776978417266186,
+              "f1": 0.2882882882882883,
               "support": 228
             },
             "1": {
-              "precision": 0.7620578778135049,
-              "recall": 0.6565096952908587,
-              "f1": 0.7053571428571429,
+              "precision": 0.7624398073836276,
+              "recall": 0.6578947368421053,
+              "f1": 0.7063197026022304,
               "support": 722
             }
           },
           "confusion_matrix": {
             "tn": 80,
             "fp": 148,
-            "fn": 248,
-            "tp": 474
+            "fn": 247,
+            "tp": 475
           },
           "prediction_counts": {
-            "0": 328,
-            "1": 622
+            "0": 327,
+            "1": 623
           },
-          "roc_auc": 0.48232249599066923,
-          "pr_auc": 0.7463975287920877
+          "roc_auc": 0.48115918258249507,
+          "pr_auc": 0.746916243095048
         },
         "feature_importance": [
           {
             "feature": "vibration_deviation_7d",
-            "importance": 0.11187634664848418
+            "importance": 0.11187634664848341
           },
           {
             "feature": "vibration_change_1d",
@@ -744,55 +744,55 @@
           },
           {
             "feature": "prior_7d_temperature_stddev",
-            "importance": 0.07584709742619809
+            "importance": 0.07584709742619687
           },
           {
             "feature": "anomaly_rate_deviation_7d",
-            "importance": 0.0659619265956737
+            "importance": 0.06596192659567522
           },
           {
             "feature": "machine_age_years",
-            "importance": 0.06475168622114268
+            "importance": 0.0647516862211425
           },
           {
             "feature": "temperature_change_1d",
-            "importance": 0.06046132401981478
+            "importance": 0.06046132401981552
           },
           {
             "feature": "prior_7d_avg_temperature_c",
-            "importance": 0.059545674620312156
-          },
-          {
-            "feature": "avg_temperature_c",
-            "importance": 0.058624991113620684
+            "importance": 0.05954567462031222
           },
           {
             "feature": "avg_load_pct",
-            "importance": 0.058339360657049456
+            "importance": 0.05833936065705188
           },
           {
             "feature": "avg_power_kw",
-            "importance": 0.056286485964120066
+            "importance": 0.05628648596411971
+          },
+          {
+            "feature": "avg_temperature_c",
+            "importance": 0.05422680798766291
           },
           {
             "feature": "max_vibration_mm_s",
-            "importance": 0.047772994328825126
+            "importance": 0.04777299432882576
           },
           {
             "feature": "temperature_stddev",
-            "importance": 0.04583213909190847
+            "importance": 0.04583213909190607
           },
           {
             "feature": "criticality",
-            "importance": 0.039476746539555706
+            "importance": 0.03947674653955576
           },
           {
             "feature": "prior_7d_anomaly_rate",
-            "importance": 0.03713182859432597
+            "importance": 0.03713182859432708
           },
           {
             "feature": "temperature_deviation_7d",
-            "importance": 0.030808529715120297
+            "importance": 0.03520671284107663
           }
         ],
         "candidates": [
@@ -804,7 +804,7 @@
             "threshold": 0.56,
             "macro_f1": 0.4758778419207447,
             "balanced_accuracy": 0.47605466984587097,
-            "training_seconds": 2.824086458887905
+            "training_seconds": 2.8641214170493186
           }
         ]
       }
@@ -818,7 +818,7 @@
         "0": 1.1926605504587156,
         "1": 0.8609271523178808
       },
-      "training_seconds": 2.4494048762135208,
+      "training_seconds": 2.488025917671621,
       "test": {
         "accuracy": 0.7231578947368421,
         "macro_f1": 0.534274663311431,
@@ -848,101 +848,101 @@
           "0": 117,
           "1": 833
         },
-        "roc_auc": 0.6323079166059195,
-        "pr_auc": 0.8545931686269873
+        "roc_auc": 0.6323079166059191,
+        "pr_auc": 0.8545931686269875
       }
     },
     "test_was_used_for_selection": false
   },
   "regression": {
-    "rmse": 0.5212466108072374,
-    "mae": 0.4430003911847073,
-    "baseline_rmse": 3.5364868642298024
+    "rmse": 0.5212466108071715,
+    "mae": 0.4430003911846022,
+    "baseline_rmse": 3.5364868642297904
   },
   "clustering": {
-    "silhouette": 0.3620643824038564,
+    "silhouette": 0.36192320882508694,
     "distribution": {
-      "1": 1999,
-      "2": 85,
-      "0": 1866
+      "1": 85,
+      "2": 1861,
+      "0": 2004
     },
     "profiles": [
       {
         "prediction": 0,
-        "avg_temperature_c": 52.217436351701586,
-        "temperature_stddev": 3.907607888707448,
-        "avg_vibration_mm_s": 2.993645942888196,
-        "max_vibration_mm_s": 7.123555734190778,
-        "avg_power_kw": 26.234331647068707,
-        "avg_load_pct": 59.96313633081958,
-        "anomaly_rate": 0.011433952039197377,
-        "machine_age_years": 8.27438370846731,
-        "criticality": 2.9935691318327975,
-        "maintenance_count": 0.06430868167202572
+        "avg_temperature_c": 54.033119488783285,
+        "temperature_stddev": 3.922060878937745,
+        "avg_vibration_mm_s": 3.278193392173239,
+        "max_vibration_mm_s": 7.561143712574853,
+        "avg_power_kw": 28.34585445890377,
+        "avg_load_pct": 65.90971797672974,
+        "anomaly_rate": 0.012043289980886567,
+        "machine_age_years": 7.297405189620759,
+        "criticality": 2.9980039920159682,
+        "maintenance_count": 0.06786427145708583
       },
       {
         "prediction": 1,
-        "avg_temperature_c": 54.03644837017828,
-        "temperature_stddev": 3.9217430604421333,
-        "avg_vibration_mm_s": 3.2787866499593323,
-        "max_vibration_mm_s": 7.5594867433716875,
-        "avg_power_kw": 28.34862101057434,
-        "avg_load_pct": 65.91601360880583,
-        "anomaly_rate": 0.012033090075583104,
-        "machine_age_years": 7.297648824412206,
-        "criticality": 2.9974987493746874,
-        "maintenance_count": 0.06603301650825413
-      },
-      {
-        "prediction": 2,
-        "avg_temperature_c": 59.97276716499379,
+        "avg_temperature_c": 59.972767164993776,
         "temperature_stddev": 4.892122681833865,
         "avg_vibration_mm_s": 4.774671989482708,
-        "max_vibration_mm_s": 10.020894117647055,
-        "avg_power_kw": 29.692079222663356,
-        "avg_load_pct": 63.11486143010863,
+        "max_vibration_mm_s": 10.020894117647057,
+        "avg_power_kw": 29.692079222663352,
+        "avg_load_pct": 63.11486143010865,
         "anomaly_rate": 0.9997041028075613,
         "machine_age_years": 9.2,
         "criticality": 3.2,
         "maintenance_count": 0.058823529411764705
+      },
+      {
+        "prediction": 2,
+        "avg_temperature_c": 52.216133835969806,
+        "temperature_stddev": 3.9072276715532968,
+        "avg_vibration_mm_s": 2.993518691447022,
+        "max_vibration_mm_s": 7.120600214938203,
+        "avg_power_kw": 26.231630262184392,
+        "avg_load_pct": 59.95392196235664,
+        "anomaly_rate": 0.011421358648326836,
+        "machine_age_years": 8.277270284793122,
+        "criticality": 2.9930145083288555,
+        "maintenance_count": 0.06233207952713595
       }
     ],
     "scaled_cluster_centers": [
       [
-        -0.6283659891378918,
-        -0.10230651552013109,
-        -0.478883333729417,
-        -0.20197264672447043,
-        -0.8954638191748694,
-        -0.8406827754395061,
-        -0.1502275027267072,
-        0.11009961465506003,
-        -0.004546734844587309,
-        -0.0029974630723823576
+        0.4208028660454447,
+        -0.0501302575898527,
+        0.26724806838864923,
+        0.11036896143128594,
+        0.7567515050516016,
+        0.7822039123435308,
+        -0.14598363431935357,
+        -0.11664712333644457,
+        -0.0014112121124417695,
+        0.011126066440963126
       ],
       [
-        0.42272641680759854,
-        -0.05127760353957095,
-        0.26880369035913987,
-        0.10918624972267349,
-        0.7589162645511291,
-        0.7839220586830405,
-        -0.14605467380813916,
-        -0.11659057818918053,
-        -0.0017684273845255786,
-        0.0038519474115524957
-      ],
-      [
-        3.852950923915269,
-        3.4518574992493694,
-        4.191267337778274,
-        1.866089948143809,
-        1.8101396910895793,
-        0.01945721956178008,
-        6.732797800358888,
+        3.8529509239153072,
+        3.4518574992493742,
+        4.19126733777828,
+        1.8660899481438136,
+        1.8101396910895726,
+        0.019457219561762346,
+        6.732797800358886,
         0.3249257041627615,
         0.14140345366666537,
-        -0.02478560920737798
+        -0.024785609207377927
+      ],
+      [
+        -0.6291186308908615,
+        -0.10367912478564734,
+        -0.47921700846964843,
+        -0.2040822376681985,
+        -0.8975775872466524,
+        -0.8431974766250535,
+        -0.15031521217330573,
+        0.11076955954454867,
+        -0.004938863239297821,
+        -0.010848930878593037
       ]
     ]
   },

@@ -5,7 +5,14 @@ from __future__ import annotations
 import csv
 import json
 import os
+from contextlib import contextmanager
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, Iterator
+
+
+class PostgresUnavailable(RuntimeError):
+    """Raised when a read API query cannot reach or use PostgreSQL."""
 
 
 def connection_url() -> str:
@@ -13,6 +20,166 @@ def connection_url() -> str:
         "POSTGRES_DSN",
         "postgresql://industrial:change-me@postgres:5432/industrial",
     )
+
+
+@contextmanager
+def read_connection() -> Iterator[Any]:
+    """Open a bounded read connection without exposing driver errors upstream."""
+    import psycopg
+    from psycopg.rows import dict_row
+
+    try:
+        with psycopg.connect(
+            connection_url(),
+            connect_timeout=int(os.getenv("POSTGRES_CONNECT_TIMEOUT_SECONDS", "5")),
+            options=f"-c statement_timeout={int(os.getenv('POSTGRES_STATEMENT_TIMEOUT_MS', '5000'))}",
+            row_factory=dict_row,
+        ) as connection:
+            yield connection
+    except psycopg.Error as exc:
+        raise PostgresUnavailable("PostgreSQL query failed") from exc
+
+
+def check_connection() -> bool:
+    with read_connection() as connection:
+        return connection.execute("SELECT 1 AS value").fetchone()["value"] == 1
+
+
+def fetch_machines(limit: int, offset: int) -> tuple[list[dict[str, object]], int]:
+    with read_connection() as connection:
+        total = connection.execute("SELECT count(*) AS count FROM machines").fetchone()["count"]
+        rows = connection.execute(
+            """
+            SELECT machine_id, line_id, machine_type, installed_year, criticality, manufacturer
+            FROM machines ORDER BY machine_id LIMIT %s OFFSET %s
+            """,
+            (limit, offset),
+        ).fetchall()
+    return list(rows), int(total)
+
+
+def fetch_machine(machine_id: str) -> dict[str, object] | None:
+    with read_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT machine_id, line_id, machine_type, installed_year, criticality, manufacturer
+            FROM machines WHERE machine_id = %s
+            """,
+            (machine_id,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def fetch_machine_metrics(
+    machine_id: str,
+    limit: int,
+    offset: int,
+) -> tuple[list[dict[str, object]], int]:
+    with read_connection() as connection:
+        total = connection.execute(
+            "SELECT count(*) AS count FROM machine_daily_metrics WHERE machine_id = %s",
+            (machine_id,),
+        ).fetchone()["count"]
+        rows = connection.execute(
+            """
+            SELECT machine_id, metric_date, measurement_count, avg_temperature_c,
+                   max_temperature_c, avg_vibration_mm_s, avg_load_pct, anomaly_rate,
+                   failure_count, maintenance_count, calculated_at
+            FROM machine_daily_metrics
+            WHERE machine_id = %s
+            ORDER BY metric_date DESC, calculated_at DESC
+            LIMIT %s OFFSET %s
+            """,
+            (machine_id, limit, offset),
+        ).fetchall()
+    return list(rows), int(total)
+
+
+def fetch_predictions(
+    model_version: str,
+    limit: int,
+    offset: int,
+    machine_id: str | None = None,
+    predicted_label: int | None = None,
+) -> tuple[list[dict[str, object]], int]:
+    conditions = ["model_version = %s"]
+    parameters: list[object] = [model_version]
+    if machine_id is not None:
+        conditions.append("machine_id = %s")
+        parameters.append(machine_id)
+    if predicted_label is not None:
+        conditions.append("predicted_label = %s")
+        parameters.append(predicted_label)
+    where = " AND ".join(conditions)
+    with read_connection() as connection:
+        total = connection.execute(
+            f"SELECT count(*) AS count FROM ml_predictions WHERE {where}",  # noqa: S608 - static clauses
+            parameters,
+        ).fetchone()["count"]
+        rows = connection.execute(
+            f"""
+            SELECT machine_id, prediction_date, model_name, model_version,
+                   risk_probability, predicted_label, created_at
+            FROM ml_predictions WHERE {where}
+            ORDER BY prediction_date DESC, machine_id ASC
+            LIMIT %s OFFSET %s
+            """,  # noqa: S608 - static clauses only
+            [*parameters, limit, offset],
+        ).fetchall()
+    return list(rows), int(total)
+
+
+def fetch_pipeline_runs(limit: int, offset: int) -> tuple[list[dict[str, object]], int]:
+    with read_connection() as connection:
+        total = connection.execute("SELECT count(*) AS count FROM pipeline_runs").fetchone()["count"]
+        rows = connection.execute(
+            """
+            SELECT run_id, started_at, finished_at, status, profile,
+                   input_rows, valid_rows, rejected_rows, summary
+            FROM pipeline_runs
+            ORDER BY started_at DESC, run_id DESC
+            LIMIT %s OFFSET %s
+            """,
+            (limit, offset),
+        ).fetchall()
+    return list(rows), int(total)
+
+
+def record_pipeline_run(
+    run_id: str,
+    profile: str,
+    quality: dict[str, object],
+    summary: dict[str, object],
+) -> None:
+    """Persist only a completed successful run after final consistency checks."""
+    import psycopg
+    from psycopg.types.json import Jsonb
+
+    now = datetime.now(UTC)
+    with psycopg.connect(connection_url()) as connection:
+        connection.execute(
+            """
+            INSERT INTO pipeline_runs(
+                run_id, started_at, finished_at, status, profile,
+                input_rows, valid_rows, rejected_rows, summary
+            ) VALUES (%s, %s, %s, 'success', %s, %s, %s, %s, %s)
+            ON CONFLICT (run_id) DO UPDATE SET
+                finished_at = EXCLUDED.finished_at, status = EXCLUDED.status,
+                input_rows = EXCLUDED.input_rows, valid_rows = EXCLUDED.valid_rows,
+                rejected_rows = EXCLUDED.rejected_rows, summary = EXCLUDED.summary
+            """,
+            (
+                run_id,
+                now,
+                now,
+                profile,
+                quality["input_rows"],
+                quality["valid_rows"],
+                quality["rejected_rows"],
+                Jsonb(summary),
+            ),
+        )
+        connection.commit()
 
 
 def load_machine_metrics(path: Path, batch_size: int = 1_000) -> int:

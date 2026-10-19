@@ -2,7 +2,7 @@
 
 **Projekt:** Industrial Intelligence Platform  
 **Abnahmedatum:** 19. Oktober 2026  
-**Status:** Technische Lösung lokal abgeschlossen und getestet; öffentliche GitHub-Veröffentlichung blockiert, weil die GitHub-CLI keine gültige Anmeldung besitzt.
+**Status:** Technische Lösung lokal integriert, gehärtet und getestet; kein GitHub-Push beauftragt oder ausgeführt.
 
 ## 1. Implementierungsstatus
 
@@ -15,24 +15,24 @@ Die Plattform ist als integrierte End-to-End-Anwendung umgesetzt. Sie erzeugt de
 | MongoDB | ja | ja | gesund; 1.000.000 Sensordokumente |
 | Neo4j | ja | ja | gesund; 270 Knoten, 400 Beziehungen |
 | Python-ETL und Datenqualität | ja | ja | 994.905 valide, 5.095 Quarantänefälle |
-| Airflow-DAG | ja | ja | Import fehlerfrei; Full-DAG erfolgreich |
+| Airflow-DAG | ja | ja | 13 Tasks; beide Gates vor ML/Persistenz; Full-DAG erfolgreich |
 | Spark DataFrames/SQL/Joins/Windows/Aggregationen | ja | ja | 4.950 Feature-Zeilen |
 | MLlib Klassifikation/Regression/KMeans | ja | ja | echte Kennzahlen gespeichert |
-| FastAPI | ja | ja | Container gesund; Prognose-Endpunkt abgefragt |
-| Tests | ja | ja | 17 schnelle + 4 Containerintegrationstests bestanden |
-| Präsentation und Begleitmaterial | ja | ja | zehn Folien, visuell geprüft |
-| GitHub-Veröffentlichung | vorbereitet | nein | wegen ungültiger `gh`-Authentifizierung ausgesetzt |
+| FastAPI | ja | ja | direkte PostgreSQL-/Neo4j-Zugriffe real abgefragt |
+| Tests | ja | ja | 32 Tests bestanden; 1 Host-Spark-Test transparent übersprungen |
+| Präsentation und Begleitmaterial | ja | ja | zehn Folien aktualisiert, gerendert und validiert |
+| GitHub-Veröffentlichung | nicht beauftragt | nein | kein Push ausgeführt |
 
 ## 2. Tatsächlich ausgeführte Services
 
 Die folgende Kombination lief gleichzeitig in Docker Compose: PostgreSQL 16.4, MongoDB 7.0.14, Neo4j 5.23, Spark 3.5.3 Master/Worker, Airflow 2.10.2 Webserver/Scheduler und die FastAPI. Wegen bereits belegter Standardports wurden für den Abnahmelauf ausschließlich Host-Ports geändert: PostgreSQL 65432, MongoDB 57017, Neo4j 57474/57687, API 58000 und Airflow 58080. Die internen Compose-Ports blieben unverändert.
 
-`docker compose ps` meldete API, Airflow-Webserver, PostgreSQL, MongoDB, Neo4j und Spark Master als gesund; Scheduler und Worker liefen. `GET /health` lieferte `{"status":"ok","pipeline_artifacts_available":true}`.
+`docker compose ps` meldete API, Airflow-Webserver, PostgreSQL, MongoDB, Neo4j und Spark Master als gesund; Scheduler und Worker liefen. `GET /health` lieferte `{"status":"ok","postgres_available":true,"authentication":"not_configured_local_only"}`. Alle veröffentlichten Ports waren an `127.0.0.1` gebunden.
 
 ## 3. Datenbankintegration
 
 - PostgreSQL: 50 Maschinen, 600 Produktionsaufträge, 320 Wartungen, 180 normalisierte Störungsereignisse, 50 Tagesmetriken und 1.950 versionierte ML-Prognosen. Davon gehören 950 zur neuen Benchmark-Version; die 1.000 vorherigen Resultate bleiben erhalten. Upserts verwenden Primärschlüssel und `ON CONFLICT`.
-- MongoDB: 1.000.000 verschachtelte Sensordokumente. Eindeutiger `reading_id`-Index und Batch-Upserts sichern Wiederholbarkeit.
+- MongoDB: 1.000.000 verschachtelte Sensordokumente. Der Load verwendet eine temporäre Collection, Zählprüfung und atomaren Rename. Spark liest ausschließlich den kontrollierten, sortierten Snapshot-Export.
 - Neo4j: 270 Knoten und 400 gerichtete Beziehungen. Constraints und `MERGE` verhindern Duplikate; der Graph enthält bewusst technische Beziehungen statt eine Million Messknoten.
 
 ## 4. Datenmengen und ETL-Ergebnis
@@ -52,13 +52,13 @@ Die Qualitätsprüfung akzeptierte 994.905 Messungen und stellte 5.095 Datensät
 
 ## 5. Airflow-DAG
 
-`industrial_etl` enthält exakt die zehn geforderten fachlichen Schritte: Quellen validieren, Daten extrahieren, normalisieren, Spark ausführen, Maschinenmetriken berechnen, MLlib ausführen, PostgreSQL persistieren, Neo4j synchronisieren, Qualitäts-Gate prüfen und Zusammenfassung schreiben. Retry, Timeout, ein aktiver Lauf und kleine XCom-Payloads sind konfiguriert.
+`industrial_etl` enthält 13 technische Tasks. Ein Source Gate liegt vor Spark; ein Feature Gate liegt vor Metrikberechnung, ML und PostgreSQL-Persistenz. Danach folgen ein finaler Konsistenzcheck und erst dann die erfolgreiche Laufzusammenfassung. Retry, Timeout, ein aktiver Lauf und kleine XCom-Payloads sind konfiguriert.
 
-Am 19. Oktober 2026 wurde `airflow dags test industrial_etl 2026-10-19` mit `IIP_PROFILE=full` ausgeführt. Der DagRun endete mit `state=success`. Die Zusammenfassung meldet `postgres_rows=1000` (50 Tagesmetriken plus 950 neue Testprognosen), `neo4j_rows=200` und ein bestandenes Qualitäts-Gate. Der Wert 200 bezeichnet synchronisierte Komponenten-Zeilen; daraus entstehen zwei Beziehungstypen und insgesamt 400 Graphbeziehungen.
+Am 19. Oktober 2026 wurde der Full-Lauf `hardening_full_20261019T1028Z` ausgeführt. Alle 13 Tasks endeten mit `success`. Die aktive Verarbeitung bis zum finalen Konsistenzcheck dauerte rund 2:33 Minuten. Die Zusammenfassung weist 50 Tagesmetriken, 950 neue Testprognosen, 200 synchronisierte Komponenten-Zeilen und insgesamt 1.950 versionierte PostgreSQL-Prognosen nach. Details und Tasklaufzeiten stehen in `docs/architecture/INTEGRATION_HARDENING_REPORT.md`.
 
 ## 6. Spark-Transformation
 
-Der Spark-Lauf las 1.000.000 JSONL-Messungen, normalisierte Typen und Zeitstempel, filterte ungültige Werte und entfernte Duplikate. DataFrame-Operationen, Spark SQL, mehrere Joins, `lag`, rollender Mittelwert, `lead`, Ranking und Aggregationen sind im selben Feature-Engineering-Pfad integriert. Ergebnis: 994.905 valide Messungen und 4.950 tagesbezogene Feature-Zeilen für 50 Maschinen. Die Ausgabe liegt partitioniert als Parquet vor.
+Der Spark-Lauf las 1.000.000 Messungen aus dem kontrollierten MongoDB-Export, normalisierte Typen und Zeitstempel, filterte ungültige Werte und entfernte Duplikate. DataFrame-Operationen, Spark SQL, mehrere Joins, `lag`, rollender Mittelwert, `lead`, Ranking und Aggregationen sind im selben Feature-Engineering-Pfad integriert. Ergebnis: 994.905 valide Messungen und 4.950 tagesbezogene Feature-Zeilen für 50 Maschinen. Die Ausgabe liegt partitioniert als Parquet vor.
 
 Das Ziel für Klassifikation und Regression wird ausschließlich aus dem Folgetag gebildet. Die neuen Klassifikationsmerkmale verwenden zusätzlich rückwärtsgerichtete 7-Tage-Fenster, Tagesänderungen, Abweichungen vom historischen Niveau und zyklische Wochentagsmerkmale. Die Fenster enden am Vortag. Zukünftige Outcomes, `risk_rank` und alle `future_*`-Spalten sind als Klassifikationsmerkmale ausgeschlossen.
 
@@ -88,44 +88,34 @@ Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sin
 
 ## 8. Testergebnisse
 
-- Schnelltests: 17 bestanden, 5 wegen Markierung abgewählt, eine Deprecation-Warnung. Neue Tests prüfen klassenweise Metriken, die Entlarvung einer Ein-Klassen-Vorhersage und ausschließlich validierungsbasierte Threshold-Auswahl.
-- Containerintegration: 4 bestanden in 0,82 Sekunden gegen die laufenden Dienste und das Full-Profil.
+- Gesamtsuite: 32 Tests bestanden, eine Deprecation-Warnung.
+- Spark-Vertragstest: auf dem Host ohne PySpark explizit übersprungen; der identische Transformationspfad lief im Full-DAG erfolgreich.
+- Containerintegration: 4 Tests gegen die laufenden Dienste und das Full-Profil bestanden.
 - Airflow: keine Importfehler; DAG gelistet; Full-DAG erfolgreich.
 - Docker Compose: Konfiguration validiert; Images für App, Spark-Submit und Airflow gebaut.
-- API: Healthcheck und `/predictions?risk=high` im Container erfolgreich.
-- Full-Pipeline lokal: 1.000.000 Messungen in 14,862 Sekunden verarbeitet; dieser Wert misst die lokale Streaming-Baseline, nicht den Spark-Cluster.
+- API: Healthcheck, Maschinen, Metriken, versionierte Prognosen, Pipeline-Läufe und Neo4j-Abhängigkeiten gegen reale Dienste erfolgreich.
+- Full-DAG: 1.000.000 Messungen, alle 13 Tasks erfolgreich; aktive Laufzeit bis zum finalen Check rund 2:33 Minuten.
 
 ## 9. Bekannte Probleme und Grenzen
 
 1. Die Klassifikation trennt beide Klassen nachweisbar besser als die Majority-Baseline, bleibt mit Recall 0,180 für Klasse 0 aber zu schwach für eine fachliche Freigabe.
 2. Synthetische Daten belegen keine reale Vorhersageleistung, Sicherheit oder Wirtschaftlichkeit.
 3. Eine Million Zeilen ist ein Skalierungsnachweis, aber noch kein zwingender Grund für einen Spark-Cluster.
-4. Das lokale Setup verwendet Beispielpasswörter aus `.env.example`; reale Geheimnisse müssen außerhalb von Git verwaltet werden.
-5. Kafka/Streaming, HDFS/Object Storage, Modellregistry, Drift-Monitoring, Authentifizierung und Observability-Stack sind Ausbaupunkte.
-6. Die GitHub-CLI meldete den konfigurierten Benutzer `Maik-Huebner`, aber dessen Token ist ungültig. Der gewünschte, technisch autorisierte Login ist deshalb nicht verifiziert; es wurde bewusst kein öffentliches Repository erzeugt.
+4. Die API besitzt keine Authentifizierung, TLS-Terminierung oder Rate Limits und darf nicht öffentlich exponiert werden.
+5. Das lokale Setup verwendet Beispielpasswörter aus `.env.example`; reale Geheimnisse müssen außerhalb von Git verwaltet werden.
+6. Kafka/Streaming, HDFS/Object Storage, Modellregistry, Drift-Monitoring und ein Observability-Stack sind Ausbaupunkte.
 
 ## 10. Dokumentation und Präsentation
 
 Fachdokumentation: `README.md` sowie die Verzeichnisse `docs/architecture`, `docs/databases`, `docs/etl`, `docs/airflow`, `docs/spark`, `docs/ml`, `docs/testing` und `docs/operations`. Die konkrete Tageszuordnung steht in `docs/COURSE_COVERAGE.md`.
 
-Aktuellste Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Architecture_Audit_Final.pptx`. Sie korrigiert den dateibasierten FastAPI-Serving-Pfad, die versionierten PostgreSQL-Prognosen und die Abgrenzung des Neo4j-Kontextgraphs. Die vorherigen Fassungen bleiben unverändert erhalten. `presentation/PIPELINE_PRESENTATION_NOTES.md` ergänzt den Zwei-Minuten-Ablauf und typische technische Rückfragen.
+Aktuellste Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Integration_Hardening_Final_v2.pptx`. Sie zeigt MongoDB als verifizierte Spark-Quelle, beide Gates vor ML/Persistenz und den direkten PostgreSQL-/Neo4j-Serving-Pfad. Alle zehn Folien wurden gerendert und visuell geprüft; Paket-, Layout-, Font- und Chartvalidierung bestanden. Die vorherigen Fassungen bleiben unverändert erhalten.
 
-## 11. Git, Release-Gates und Veröffentlichung
+## 11. Git und Release-Gates
 
-Die lokalen Release-Gates umfassten Tests, Full-DAG, Compose-Validierung, Gesundheitsprüfungen, Secret-Suche, Größenprüfung und Diff-Check. Folgende abgeschlossene Entwicklungsschritte wurden lokal auf `main` versioniert:
-
-- `1ccd177` – `feat: implement industrial intelligence platform`
-- `639580f` – `test: add integration and end-to-end evidence`
-- `fecfb51` – `docs: complete documentation and final presentation`
-- `7dfd822` – `docs: record validated release status`
-
-Eine abschließende Statusaktualisierung dokumentiert Release-Prüfung und Publikationsblocker. Der vollständige, maßgebliche Stand ist über `git log --oneline` nachvollziehbar.
-
-**GitHub-Repository-URL:** nicht vorhanden. Die Veröffentlichung ist nicht fehlgeschlagen, sondern kontrolliert ausgesetzt, bis `gh auth status` eine gültige und eindeutig autorisierte Identität bestätigt. Es gab keinen Force-Push und keine Annahme eines Benutzernamens.
+Die Integrationshärtung wurde auf dem eigenen Branch `feature/pipeline-integration-hardening` durchgeführt. Die lokalen Gates umfassen Tests, Full-DAG, Compose-Validierung, reale API-/Datenbankprüfungen, Präsentationsvalidierung und `git diff --check`. Bestehende Berichte, Modelle und 1.000 historische Prognosen wurden nicht ungeprüft überschrieben. Es wurde kein GitHub-Push ausgeführt.
 
 ## 12. Offene Punkte
 
-- GitHub CLI erneut anmelden und Identität prüfen.
-- Existenz eines gleichnamigen Repositories kontrollieren.
-- Erst dann öffentliches Repository anlegen, `main` pushen und lokalen/remote Commit vergleichen.
 - Für einen realen Pilotbetrieb echte Historien, fachlich validierte Labels, Alarmkosten, Security, Monitoring und Betriebs-SLAs ergänzen.
+- Authentifizierung, TLS, Rate Limits, Secret Store und Backup-/Restore-Nachweis vor externer Freigabe ergänzen.

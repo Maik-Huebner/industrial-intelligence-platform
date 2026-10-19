@@ -1,91 +1,32 @@
 # Data Lineage
 
-## Sensorpfad
+## Sensoren bis zur Vorhersage
 
-```text
-Settings(profile=full, seed=20261019)
-  -> IndustrialDataGenerator.readings()
-  -> data/raw/mongodb/sensor_readings.jsonl
-      -> load_sensor_documents()
-      -> MongoDB industrial.sensor_readings
-      -> validate_sensor_file()
-          -> data/processed/sensor_readings.csv
-          -> data/quarantine/sensor_readings.jsonl
-          -> data/processed/quality_report.json
-      -> Spark build_features() liest die rohe JSONL erneut
-          -> normalisierte Sensor-DataFrames
-          -> Tagesaggregation
-          -> Kontext-Joins und Zeitfeatures
-          -> data/processed/spark_features.parquet
-```
+| Stufe | Identität und Nachweis | Qualitätskontrolle |
+|---|---|---|
+| Generator | stabiler `reading_id` aus Seed und Index; `raw/manifest.json` | deterministischer Seed, konfigurierbare Defektrate |
+| MongoDB-Aufnahme | temporäre Collection, eindeutiger `reading_id`-Index | atomarer Rename erst nach vollständiger Zählung |
+| Aktiver Snapshot | `pipeline_documents._id=active_sensor_snapshot` | Records, SHA-256, Batchgröße und Zeitpunkte |
+| MongoDB-Export | Sortierung `reading_id ASC`; `processed/mongodb_export/manifest.json` | Quelle/Export zählen, IDs vollständig und eindeutig, SHA-256 |
+| Python-Normalisierung | `processed/sensor_readings.csv` | Pflichtfelder, Timestamp, Maschinenreferenz, Wertebereiche |
+| Quarantäne | Originaldokument, Zeilennummer, Reason Codes | 5.095 tolerierte Defekte separat nachvollziehbar |
+| Source-Gate | Export-, Generator- und Qualitätsmanifest | kritischer Abbruch bei Mengen-, ID- oder Referenzabweichung |
+| Spark-Features | `spark_transform_evidence.json`, partitioniertes Parquet | 994.905 gültige Eingaben, 4.950 Features, 50 Maschinen |
+| Feature-Gate | `feature_quality_report.json` | Schlüssel/Targets vollständig, beide Klassen, purged Split ohne Datumsüberlappung |
+| MLlib | `classification_benchmark.json`, `ml_report.json`, Modelle | Training/Validierung für Auswahl; unabhängiger Test |
+| PostgreSQL | Unique Key mit `model_version` | Upsert ohne Verlust historischer Modellversionen |
+| FastAPI | Header `X-Model-Version` und `X-Total-Count` | explizite Versionswahl, begrenzte Pagination |
 
-Die Python-Validierung und Spark-Normalisierung sind zwei getrennte Verarbeitungspfade. Die Python-CSV ist Eingabe der lokalen Regelbaseline; Spark verwendet die Roh-JSONL und eigene Filter.
+## Relationale und Graph-Lineage
 
-## Stamm- und Ereignispfad
+Maschinen, Aufträge, Wartungen und Störungen stammen aus demselben Generatorlauf. PostgreSQL schützt die Referenzen über Primär- und Fremdschlüssel. Spark verbindet Tagesaggregate per `machine_id` und `metric_date` mit Maschinen-, Wartungs- und Störungsdaten.
 
-| Ursprung | Staging | Relationale Persistenz | Spark-Verwendung |
-|---|---|---|---|
-| `machines()` | `raw/postgres/machines.csv` | `machines` | Inner Join und statische Features |
-| `_write_machines()` | `raw/postgres/production_orders.csv` | `production_orders` | keine |
-| `_write_events()` | `raw/files/maintenance.csv` | `maintenance_records` | Tagesaggregation und Left Join |
-| `_write_events()` | `raw/files/failures.json` | `normalized_machine_events` | Tagesaggregation und Left Join |
+Die Komponenten-CSV enthält pro Maschine vier direkte Komponenten und je Produktionslinie vier geteilte Utilities. `sync_components()` materialisiert `Machine-[:HAS_COMPONENT]->Component-[:DEPENDS_ON]->Utility`. Der API-Endpunkt liest nur diese vorhandenen Beziehungen. Nachbarmaschinen bedeuten ausschließlich eine geteilte technische Utility, nicht einen bewiesenen Ausfallzusammenhang.
 
-## Graphpfad
+## Target-Lineage
 
-```text
-machines()
-  -> _write_components()
-  -> data/raw/neo4j/machine_components.csv
-  -> sync_components()
-  -> (:Machine)-[:HAS_COMPONENT]->(:Component)-[:DEPENDS_ON]->(:Component)
-```
+`risk_label` verwendet ausschließlich den Folgetag: Ausfall, Anomalierate oder Maximalvibration. Features verwenden aktuelle oder vergangene Tageswerte. Das eintägige Target-Horizont führt zu je einem Purge-Tag an beiden Splitgrenzen. Das Gate bestätigt disjunkte Datumsbereiche und beide Klassen in allen Partitionen.
 
-Dieser Pfad endet im Graph. Weder Spark noch MLlib noch die aktuelle FastAPI lesen Neo4j.
+## Versions-Lineage
 
-## Feature-Herkunft
-
-| Featuregruppe | Herkunft | Zeitbezug | Leakage-Bewertung |
-|---|---|---|---|
-| Temperatur, Vibration, Leistung, Last, Anomalierate | Sensormessungen des aktuellen Tages | Tag `t` | zulässig für Vorhersage von `t+1` |
-| Maschinenalter, Kritikalität, Typ | Maschinenstamm | statisch | zulässig |
-| Wartungsanzahl | Wartung am aktuellen Tag | Tag `t` | zulässig, sofern zum Scoring-Zeitpunkt bekannt |
-| vorherige Tageswerte | `lag(1)` | `t-1` | zulässig |
-| vorherige 7-Tage-Mittel und Standardabweichung | `rowsBetween(-7, -1)` | ausschließlich vor `t` | zulässig |
-| 1-Tages-Änderungen und Abweichungen | aktueller Wert minus vergangener Wert | bis einschließlich `t` | zulässig |
-| Wochentag Sinus/Cosinus | `metric_date` | Tag `t` | zulässig |
-| `future_*` | `lead(1)` | Tag `t+1` | ausschließlich Targetbildung, explizit als Feature ausgeschlossen |
-| `risk_rank` | aktuelle tägliche Rangfolge | Tag `t` | vorsorglich aus Klassifikationsfeatures ausgeschlossen |
-
-Ein Druckmerkmal existiert nicht, weil der Generator keinen Drucksensor erzeugt.
-
-## Klassifikations-Lineage
-
-1. `risk_label` wird positiv, wenn am Folgetag mindestens eine Störung, eine Anomalierate über 0,08 oder eine maximale Vibration über 7,5 mm/s vorliegt.
-2. `purged_chronological_split()` ordnet Daten nach Datum und entfernt den 8. sowie 28. September als Grenztage.
-3. Training: 11. Juli bis 7. September, 2.950 Zeilen.
-4. Validierung: 9. bis 27. September, 950 Zeilen.
-5. Test: 29. September bis 17. Oktober, 950 Zeilen.
-6. Während Tuning und Auswahl entstehen die Klassen­gewichte nur aus dem Training. Hyperparameter und Threshold entstehen aus Training und Validierung.
-7. Das ausgewählte logistische Modell wird mit gesperrter Konfiguration auf Training plus Validierung neu gefittet; nur für diesen Refit werden die Klassen­gewichte auf der kombinierten Refit-Menge neu berechnet.
-8. Der unabhängige Test erzeugt 950 Vorhersagen.
-
-## Ergebnis-Lineage
-
-```text
-classification_best_pipeline.model
-classification_benchmark.json
-ml_report.json
-ml_predictions_json/part-*.json
-  -> PostgreSQL ml_predictions
-  -> FastAPI GET /predictions liest weiterhin die JSON-Datei
-```
-
-Die JSON-Zeilen tragen `model_name=logistic_regression` und `model_version=synthetic-v2-classification-benchmark`. PostgreSQL nutzt `(machine_id, prediction_date, model_name, model_version)` als Eindeutigkeitsschlüssel. Die alte Modellversion bleibt parallel erhalten.
-
-## Report-Priorität
-
-1. `reports/classification_benchmark.json` ist maßgeblich für den neuen Klassifikationsvergleich.
-2. `reports/classification_data_audit.json` ist maßgeblich für Split, Label-Ursachen und Korrelationen.
-3. `reports/ml_report.json` verbindet den neuen Klassifikationsreport mit Regression und Clustering. Seine Top-Level-Zählung `train=3950/test=1000` gehört zum unveränderten 80/20-Pfad von Regression, nicht zum Klassifikationssplit.
-4. `reports/airflow_latest.json` ist maßgeblich für den letzten Full-DAG: `postgres_rows=1000` bedeutet 50 Tagesmetriken plus 950 neue Vorhersagen.
-5. `reports/execution_evidence.json` dokumentiert den früheren Stand und ist bei Klassifikation, Tests und PostgreSQL-Schreibzahlen veraltet.
+Die PostgreSQL-Tabelle bewahrt historische Modellversionen. `synthetic-v1` und `synthetic-v2-classification-benchmark` können parallel existieren. Die FastAPI markiert `synthetic-v2-classification-benchmark` als aktuelle Version über Konfiguration; sie bestimmt „aktuell“ nicht zufällig über das jüngste Erstellungsdatum.

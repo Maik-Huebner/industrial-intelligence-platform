@@ -2,14 +2,24 @@
 
 ## PostgreSQL
 
-`sql/init.sql` definiert Primär- und Fremdschlüssel, Checks, Eindeutigkeiten, Indizes und die View `machine_risk_overview`. `sql/industrial_queries.sql` enthält fünf fachliche Analysen sowie INSERT, UPDATE, DELETE und `EXPLAIN (ANALYZE, BUFFERS)`. Ergebnis-Upserts verwenden den fachlichen Schlüssel `(machine_id, metric_date)`.
+PostgreSQL ist System of Record für Stammdaten, Produktionskontext, aggregierte Maschinenmetriken, versionierte Prognosen und Pipeline-Läufe. `sql/init.sql` definiert Schlüssel, Checks und Indizes; Prognosen sind über `(machine_id, prediction_date, model_name, model_version)` eindeutig. Der zusätzliche Index auf Modellversion und Datum unterstützt die API-Selektion.
 
-ML-Vorhersagen verwenden den Eindeutigkeitsschlüssel `(machine_id, prediction_date, model_name, model_version)`. Aktuell liegen 1.000 Zeilen der älteren Version und 950 Zeilen der Benchmark-Version gleichzeitig vor. Die FastAPI liest diese Tabelle derzeit nicht.
+Der verifizierte Stand enthält 50 Maschinenmetriken sowie 1.950 Prognosen: 1.000 historische Zeilen von `synthetic-v1` und 950 Zeilen von `synthetic-v2-classification-benchmark`. Neue Läufe ersetzen nur fachlich identische Zeilen derselben Version. FastAPI liest PostgreSQL direkt und verwendet parametrisierte Abfragen mit Verbindungs- und Statement-Timeouts.
 
 ## MongoDB
 
-Sensordokumente enthalten verschachtelte Werte und Einheiten, Betriebskontext und Lineage. Indizes decken `reading_id`, Maschine/Zeit sowie Szenario/Maschine ab. Der Adapter verwendet ungeordnete `bulk_write`-Upserts. Eine Aggregation nutzt `$match`, `$group`, `$project` und `$sort`. `$unwind` und `$lookup` sind für diese bewusst denormalisierte Rohquelle fachlich nicht nötig. Spark übernimmt die systemübergreifenden Joins, liest dafür aber aktuell die JSONL-Stagingdatei und nicht direkt MongoDB. Die initialisierte Collection `pipeline_documents` ist leer und ungenutzt.
+MongoDB ist die verifizierte operative Quelle für Spark-Sensordaten. Der Ablauf ist bewusst zweistufig:
+
+1. JSONL wird gestreamt und in eine temporäre Collection geladen.
+2. Eindeutiger `reading_id`-Index und Dokumentzahl werden geprüft.
+3. Erst dann ersetzt ein atomarer Rename die aktive Collection `sensor_readings`.
+4. `pipeline_documents/_id=active_sensor_snapshot` dokumentiert Anzahl, Quell-Hash, Batchgröße und Zeitpunkte.
+5. Der DAG exportiert die aktive Collection sortiert und batchweise nach `data/processed/mongodb_export/sensor_readings.jsonl`.
+
+Die Exportdatei wird erst nach Zähl-, Missing-ID- und Duplikatprüfung atomar veröffentlicht. Das Manifest enthält Dokumentzahl, Sortierung, SHA-256 und Zeitpunkte. Spark liest ausschließlich diesen kontrollierten Snapshot. Im Full-Lauf wurden 1.000.000 Dokumente mit Batchgröße 5.000 exportiert.
 
 ## Neo4j
 
-Der ausgeführte Graphpfad modelliert 50 Maschinen und 220 Komponenten mit 400 Beziehungen. `sync_components()` erzeugt `Machine`, direkte `Component`-Knoten und geteilte Utility-`Component`-Knoten. `cypher/schema.cypher` enthält darüber hinaus Constraints und Beispiele für Factory, ProductionLine, Sensor und MaintenanceTask; diese Datei wird von Compose und DAG nicht automatisch ausgeführt. `cypher/industrial_queries.cypher` zeigt gemeinsame Abhängigkeiten, kürzeste Pfade und Wartungsaggregation. Neo4j ist aktuell weder ML-Featurequelle noch API-Datenquelle.
+Neo4j ist System of Record für technischen Kontext, nicht für Messreihen. Der Graph enthält 50 Maschinen, 220 Komponenten und 400 Beziehungen. `sync_components()` verwendet Constraints und `MERGE`; eine Million Sensorwerte werden bewusst nicht als Knoten modelliert.
+
+FastAPI beantwortet `GET /machines/{machine_id}/dependencies` über parametrisierte Cypher-Abfragen. Das Ergebnis enthält direkte Komponenten, geteilte Utilities und betroffene Nachbarmaschinen. Neo4j ist aktuell keine ML-Featurequelle.

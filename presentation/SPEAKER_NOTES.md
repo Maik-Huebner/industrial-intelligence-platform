@@ -16,19 +16,19 @@ Zielzeit: etwa 9:30 Minuten. Die Abschnitte entsprechen den zehn Folien der Powe
 
 ## Folie 4 – Systemarchitektur · 2:20–3:20
 
-„Links sehen wir die Quellen: strukturierte Stammdaten, verschachtelte Sensoren, Wartungs-CSV, Störungs-JSON und Komponentenbeziehungen. Airflow steuert zehn fachliche Tasks. Die Qualitätsstufe trennt gültige von fehlerhaften Zeilen. Spark erzeugt Tagesmerkmale mit SQL, Joins, Fenstern und Aggregationen. MLlib trainiert Modelle, PostgreSQL speichert die Resultate, Neo4j hält den technischen Kontext und FastAPI stellt alles bereit. Messreihen werden bewusst nicht als Graphknoten modelliert, weil das den Graphen ohne Nutzen aufblähen würde.“
+„Links sehen wir die Quellen: strukturierte Stammdaten, verschachtelte Sensoren, Wartungs-CSV, Störungs-JSON und Komponentenbeziehungen. Airflow steuert 13 Tasks. MongoDB ist die verifizierte Sensorquelle; ein kontrollierter Snapshot speist Spark. Zwei Quality Gates stoppen inkonsistente Quellen beziehungsweise Features vor ML und Persistenz. PostgreSQL speichert Resultate und Laufstatus, Neo4j hält den technischen Kontext, und FastAPI liest beide Systeme direkt. Messreihen werden bewusst nicht als Graphknoten modelliert.“
 
 ## Folie 5 – Datenhaltung · 3:20–4:10
 
-„Die drei Datenbanksysteme sind keine Technologiedemonstration ohne Zweck. PostgreSQL sichert konsistente Stammdaten, Aufträge, Metriken und Prognosen. MongoDB passt zu den verschachtelten, variablen Sensordokumenten und zu Batch-Upserts. Neo4j beantwortet Beziehungsfragen wie: Welche Komponenten hängen an einer kritischen Maschine und welche Linie wäre betroffen? Im Full-Lauf stehen 50 Maschinen und 1.000 Prognosen in PostgreSQL, eine Million Sensordokumente in MongoDB sowie 270 Knoten und 400 Beziehungen in Neo4j.“
+„Die drei Datenbanksysteme sind keine Technologiedemonstration ohne Zweck. PostgreSQL sichert Stammdaten, Metriken, versionierte Prognosen und Pipeline-Läufe. MongoDB aktiviert nur vollständig geladene Sensor-Snapshots. Neo4j beantwortet Beziehungsfragen wie: Welche Komponenten hängen an einer kritischen Maschine und welche Nachbarmaschinen teilen eine Utility? Im Full-Lauf stehen 50 Metriken und 1.950 Prognosen in PostgreSQL, eine Million Sensordokumente in MongoDB sowie 270 Knoten und 400 Beziehungen in Neo4j.“
 
 ## Folie 6 – Airflow und ETL · 4:10–5:10
 
-„Der DAG bildet den vollständigen Ablauf in zehn Tasks ab. Große Daten werden nicht über XCom verschoben; XCom enthält nur kleine Metadaten. Retries, Timeouts und ein Quality Gate sind konfiguriert. Im ausgeführten Full-DAG wurden 994.905 Messungen akzeptiert und 5.095 quarantänisiert. Das sind rund 0,51 Prozent und damit weniger als das erlaubte Gate von zwei Prozent. Der gesamte DagRun endete erfolgreich, einschließlich Spark, MLlib und Persistenz.“
+„Der DAG bildet den vollständigen Ablauf in 13 Tasks ab. Große Daten werden nicht über XCom verschoben. Der MongoDB-Snapshot wird gezählt, sortiert und atomar exportiert. Ein Source Gate liegt vor Spark, ein Feature Gate vor Metriken, ML und PostgreSQL-Persistenz. Im ausgeführten Full-DAG wurden 994.905 Messungen akzeptiert und 5.095 quarantänisiert. Das sind rund 0,51 Prozent. Alle 13 Tasks endeten erfolgreich.“
 
 ## Folie 7 – Apache Spark · 5:10–6:10
 
-„Spark verarbeitet den großen Messpfad. Der Code nutzt DataFrames, Spark SQL, Joins und Window Functions. Die neuen Klassifikationsmerkmale enthalten Änderungen zum Vortag, Abweichungen vom vorherigen Sieben-Tage-Niveau und zyklische Wochentagswerte. Historische Fenster enden am Vortag. Das Label stammt aus dem Folgetag. Je ein Purge-Tag zwischen Training, Validierung und Test verhindert, dass dieser Target-Horizont eine Split-Grenze überschreitet. Aus einer Million Eingaben entstanden 994.905 gültige Messungen und 4.950 Tagesfeatures.“
+„Spark verarbeitet ausschließlich den verifizierten MongoDB-Export. Der Code nutzt DataFrames, Spark SQL, Joins und Window Functions. Die neuen Klassifikationsmerkmale enthalten Änderungen zum Vortag, Abweichungen vom vorherigen Sieben-Tage-Niveau und zyklische Wochentagswerte. Historische Fenster enden am Vortag. Das Label stammt aus dem Folgetag. Je ein Purge-Tag zwischen Training, Validierung und Test verhindert, dass dieser Target-Horizont eine Split-Grenze überschreitet. Aus einer Million Eingaben entstanden 994.905 gültige Messungen und 4.950 Tagesfeatures.“
 
 ## Folie 8 – Spark MLlib · 6:10–7:30
 
@@ -36,11 +36,11 @@ Zielzeit: etwa 9:30 Minuten. Die Abschnitte entsprechen den zehn Folien der Powe
 
 ## Folie 9 – Ergebnisse und Live-Demo · 7:30–8:40
 
-„In der Demo zeige ich zuerst den gesunden Stack und dann den API-Healthcheck. Danach rufe ich die 950 versionierten Testprognosen ab und öffne `classification_benchmark.json`. Die Vorhersagen enthalten beide Klassen und nennen die Modellversion `synthetic-v2-classification-benchmark`. Zusätzlich bleiben der erfolgreiche Full-DAG, eine Million MongoDB-Dokumente und 400 Neo4j-Beziehungen als technische Evidenz erhalten.“
+„In der Demo zeige ich zuerst den lokal gebundenen Stack und den API-Healthcheck gegen PostgreSQL. Danach rufe ich paginierte Prognosen mit der Modellversion `synthetic-v2-classification-benchmark`, die Pipeline-Laufhistorie und reale Neo4j-Abhängigkeiten ab. Die Vorhersagen enthalten beide Klassen. Zusätzlich bleiben der erfolgreiche 13-Task-Full-DAG, eine Million MongoDB-Dokumente und 400 Neo4j-Beziehungen als technische Evidenz erhalten. 32 automatisierte Tests bestanden.“
 
 ## Folie 10 – Fazit · 8:40–9:40
 
-„Das Projekt erfüllt die lokale technische Zielsetzung und verbessert die Klassifikation messbar gegenüber der Majority-Baseline. Die Grenze bleibt Teil des Ergebnisses: 2.998 der 3.059 positiven Labels erfüllen den synthetischen Vibrationsgrenzwert und Druckdaten existieren nicht. Als nächste Schritte würde ich deshalb echte Historien und fachlich validierte Labels anbinden. Eine separat versionierte Datenversion sollte Druck und plausible mehrtägige Verschleißtrajektorien ergänzen. Kosten falscher Alarme, Gerätesplit, Registry, Drift-Monitoring und Security folgen vor einem Pilotbetrieb.“
+„Das Projekt erfüllt die lokale technische Zielsetzung: MongoDB ist die geprüfte Spark-Quelle, zwei Gates schützen Veröffentlichung, und FastAPI liest PostgreSQL und Neo4j direkt. Die Klassifikation verbessert sich messbar gegenüber der Majority-Baseline. Die Grenze bleibt Teil des Ergebnisses: 2.998 der 3.059 positiven Labels erfüllen den synthetischen Vibrationsgrenzwert. Vor einem Pilotbetrieb folgen echte Historien, fachlich validierte Labels, Authentifizierung, TLS, Rate Limits, Registry, Drift-Monitoring und Recovery-Übungen.“
 
 ## Zeitreserve · 9:40–10:00
 

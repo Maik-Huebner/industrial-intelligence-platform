@@ -19,7 +19,10 @@ def parser() -> argparse.ArgumentParser:
     for name in ("generate", "pipeline"):
         command = commands.add_parser(name)
         command.add_argument("--profile", choices=("small", "medium", "full"), default=None)
-    commands.add_parser("validate")
+    validate = commands.add_parser("validate")
+    validate.add_argument("--source", choices=("raw", "mongodb-export"), default="raw")
+    export = commands.add_parser("export-mongodb")
+    export.add_argument("--batch-size", type=int, default=5_000)
     commands.add_parser("metrics")
     commands.add_parser("load-sources")
     commands.add_parser("sync-results")
@@ -33,7 +36,16 @@ def main() -> None:
     if args.command == "generate":
         result = IndustrialDataGenerator(settings).generate()
     elif args.command == "validate":
-        result = validate_sensor_file(settings.data_dir).as_dict()
+        source_path = None
+        source_name = "raw_generator_file"
+        if args.source == "mongodb-export":
+            source_path = settings.data_dir / "processed" / "mongodb_export" / "sensor_readings.jsonl"
+            source_name = "mongodb_export"
+        result = validate_sensor_file(settings.data_dir, source_path, source_name).as_dict()
+    elif args.command == "export-mongodb":
+        from .database.mongodb import export_sensor_documents
+
+        result = export_sensor_documents(settings.data_dir, args.batch_size)
     elif args.command == "metrics":
         result = {"machines": len(calculate_metrics(settings.data_dir))}
     elif args.command == "load-sources":

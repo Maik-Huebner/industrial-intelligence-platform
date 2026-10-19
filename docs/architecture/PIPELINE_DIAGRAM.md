@@ -1,82 +1,43 @@
 # Pipeline-Diagramm
 
-## End-to-End-Architektur
-
 ```mermaid
 flowchart LR
-    U[Instandhaltung / Nutzer]
-    CFG[Environment + Profil + Seed]
-    GEN[Python IndustrialDataGenerator]
+    G[Deterministischer Generator] --> PG[(PostgreSQL<br/>Stamm- und Ereignisdaten)]
+    G --> ML[MongoDB Loader<br/>temporäre Collection]
+    ML -->|atomarer Rename| MO[(MongoDB<br/>1.000.000 Sensoren)]
+    ML --> PD[(pipeline_documents<br/>Snapshot-Metadaten)]
+    G --> F[Wartung, Störungen,<br/>Komponenten]
 
-    subgraph STAGE[Dateibasiertes Staging und Arbeitsartefakte]
-        CSV[Maschinen und Aufträge<br/>CSV]
-        EVT[Wartung CSV<br/>Störungen JSON]
-        SENS[Sensoren JSONL<br/>1.000.000 Dokumente]
-        GRAPH[Komponenten CSV<br/>200 Zeilen]
-        VALID[Validierte Sensor-CSV<br/>994.905 Zeilen]
-        QUAR[Quarantäne JSONL<br/>5.095 Zeilen]
-        PQ[Parquet Features<br/>4.950 Maschinen-Tage]
-        PRED[Spark JSON-Prognosen<br/>950 Zeilen]
-        REPORT[Reports und Modellartefakte]
-    end
+    MO --> EX[Batch-Export<br/>sortiert + SHA-256]
+    EX --> Q[Python-Validierung<br/>+ Quarantäne]
+    EX --> SG{Source-Gate}
+    Q --> SG
+    G --> SG
 
-    PG[(PostgreSQL<br/>Stamm, Events, Metriken,<br/>versionierte Prognosen)]
-    MO[(MongoDB<br/>Rohsensordokumente)]
-    NEO[(Neo4j<br/>50 Machines, 220 Components,<br/>400 Beziehungen)]
-    PYQ[Python-Validierung<br/>und lokale Baseline]
-    SPARK[Apache Spark<br/>DataFrames, SQL, Joins,<br/>Windows, Aggregationen]
-    ML[Spark MLlib<br/>Klassifikation, Regression,<br/>KMeans]
-    API[FastAPI<br/>dateibasiertes Read API]
-    AF[Apache Airflow<br/>Orchestrator, 10 Tasks]
+    SG -->|bestanden| SP[Spark DataFrames<br/>SQL · Joins · Windows]
+    SP --> PQ[(Parquet Features<br/>4.950 Zeilen)]
+    PQ --> FG{Feature-Gate}
+    FG -->|bestanden| MLL[MLlib<br/>Klassifikation · Regression · KMeans]
+    FG --> PM[Python-Metriken]
 
-    CFG -->|Profil full, Seed 20261019| GEN
-    GEN -->|Maschinenstammdaten| CSV
-    GEN -->|Wartungen und Störungen| EVT
-    GEN -->|verschachtelte Sensordokumente| SENS
-    GEN -->|Komponenten und Utilities| GRAPH
+    MLL --> R[Reports, Modelle,<br/>950 Prognosen]
+    R --> PG
+    PM --> PG
+    F --> N[(Neo4j<br/>Abhängigkeitsgraph)]
 
-    CSV -->|Upserts| PG
-    EVT -->|normalisierte Events und Wartungen| PG
-    SENS -->|ReplaceOne Upserts| MO
-    GRAPH -->|Cypher MERGE| NEO
+    PG --> API[FastAPI<br/>typisiert + paginiert]
+    N --> API
+    API --> U[Nutzer]
 
-    SENS -->|JSONL| PYQ
-    CSV -->|gültige Maschinen-IDs| PYQ
-    PYQ -->|gültige Zeilen| VALID
-    PYQ -->|Reason Codes + Originaldokument| QUAR
-    VALID -->|gesamte Historie| PYQ
-    PYQ -->|50 lokale Maschinenmetriken| PG
-
-    SENS -->|rohe JSONL, eigener Filterpfad| SPARK
-    CSV -->|Maschinenkontext| SPARK
-    EVT -->|Wartungs- und Störungskontext| SPARK
-    SPARK -->|partitionierte Featuredaten| PQ
-    PQ -->|Train, Validation, Test| ML
-    ML -->|Testvorhersagen| PRED
-    ML -->|Metriken und Modelle| REPORT
-    PRED -->|Upsert mit Modellversion| PG
-
-    CSV -->|Maschinenliste| API
-    PYQ -->|machine_metrics.csv und predictions.json| API
-    PRED -->|bevorzugte MLlib-Ausgabe| API
-    REPORT -->|latest_pipeline_run.json| API
-    API -->|REST-Responses| U
-
-    AF -. startet und überwacht .-> GEN
-    AF -. startet und überwacht .-> PYQ
-    AF -. spark-submit .-> SPARK
-    AF -. spark-submit .-> ML
-    AF -. persistiert .-> PG
-    AF -. synchronisiert .-> NEO
-
-    NEO -->|separate Cypher-Abfragen| U
+    AF[Airflow<br/>13 Tasks] -. orchestriert .-> G
+    AF -. Gates .-> SG
+    AF -. Gates .-> FG
+    AF -. finale Konsistenz .-> PG
 ```
 
 ## Leseregeln
 
-- Durchgezogene Pfeile zeigen tatsächlichen Datenfluss.
-- Gestrichelte Pfeile zeigen Steuerung oder eine bewusst getrennte Nutzung.
-- Airflow ist kein Speicher.
-- MLlib ist Teil der Verarbeitung und keine Datenquelle.
-- Neo4j liegt außerhalb des Vorhersagepfads.
-- FastAPI liest im aktuellen Stand Dateien. Die PostgreSQL-Persistenz der Prognosen wird nicht für die API-Antwort verwendet.
+- MongoDB ist die Quellinstanz für Spark. Der JSONL-Export ist ein beobachteter Snapshot mit Manifest, kein unabhängiges Rohdatensystem.
+- PostgreSQL ist die Serving-Quelle für Maschinen, Metriken, Prognosen und Pipeline-Läufe.
+- Neo4j ist die Serving-Quelle für Komponentenabhängigkeiten. Der Graph fließt nicht in MLlib ein.
+- Beide Gates liegen vor MLlib. Die finale Konsistenzprüfung liegt nach den Persistenzschritten und darf nur einen vollständig veröffentlichten Lauf als erfolgreich markieren.

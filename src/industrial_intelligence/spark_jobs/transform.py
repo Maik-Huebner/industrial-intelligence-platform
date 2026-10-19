@@ -3,16 +3,55 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 
 from pyspark.sql import SparkSession, Window, functions as F, types as T
 
+from industrial_intelligence.quality_contract import SENSOR_RANGES
 
-def build_features(spark: SparkSession, data_dir: str) -> tuple[object, dict[str, int]]:
+
+def normalize_sensor_rows(sensors: object, machines: object) -> object:
+    """Apply the shared raw sensor contract with Spark expressions."""
+    machine_references = machines.select("machine_id").distinct()
+    return (
+        sensors.select(
+            "reading_id",
+            "machine_id",
+            F.to_timestamp("timestamp").alias("event_ts"),
+            F.col("sensors.temperature.value").cast("double").alias("temperature_c"),
+            F.col("sensors.vibration.value").cast("double").alias("vibration_mm_s"),
+            F.col("sensors.power.value").cast("double").alias("power_kw"),
+            F.col("sensors.load.value").cast("double").alias("load_pct"),
+            F.col("context.scenario").alias("scenario"),
+        )
+        .filter(F.col("reading_id").isNotNull() & (F.col("reading_id") != ""))
+        .filter(F.col("machine_id").isNotNull() & (F.col("machine_id") != ""))
+        .filter(F.col("event_ts").isNotNull())
+        .filter(F.col("temperature_c").between(*SENSOR_RANGES["temperature_c"]))
+        .filter(F.col("vibration_mm_s").between(*SENSOR_RANGES["vibration_mm_s"]))
+        .filter(F.col("power_kw").between(*SENSOR_RANGES["power_kw"]))
+        .filter(F.col("load_pct").between(*SENSOR_RANGES["load_pct"]))
+        .dropDuplicates(["reading_id"])
+        .join(machine_references, "machine_id", "left_semi")
+        .withColumn("metric_date", F.to_date("event_ts"))
+    )
+
+
+def build_features(
+    spark: SparkSession,
+    data_dir: str,
+    sensor_path: str | None = None,
+) -> tuple[object, dict[str, int]]:
     raw = Path(data_dir) / "raw"
     processed = Path(data_dir) / "processed"
-    sensors = spark.read.json(str(raw / "mongodb" / "sensor_readings.jsonl"))
+    mongo_export = Path(sensor_path) if sensor_path else processed / "mongodb_export" / "sensor_readings.jsonl"
+    if not mongo_export.exists():
+        raise FileNotFoundError(
+            f"Verified MongoDB export is missing: {mongo_export}. Run export-mongodb first."
+        )
+    sensors = spark.read.json(str(mongo_export))
     machines = spark.read.option("header", True).option("inferSchema", True).csv(str(raw / "postgres" / "machines.csv"))
     maintenance = spark.read.option("header", True).option("inferSchema", True).csv(str(raw / "files" / "maintenance.csv"))
     failures_schema = T.ArrayType(
@@ -34,26 +73,7 @@ def build_features(spark: SparkSession, data_dir: str) -> tuple[object, dict[str
         .select("f.*")
     )
 
-    normalized = (
-        sensors.select(
-            "reading_id",
-            "machine_id",
-            F.to_timestamp("timestamp").alias("event_ts"),
-            F.col("sensors.temperature.value").cast("double").alias("temperature_c"),
-            F.col("sensors.vibration.value").cast("double").alias("vibration_mm_s"),
-            F.col("sensors.power.value").cast("double").alias("power_kw"),
-            F.col("sensors.load.value").cast("double").alias("load_pct"),
-            F.col("context.scenario").alias("scenario"),
-        )
-        .filter(F.col("machine_id").rlike("^M-[0-9]{3}$"))
-        .filter(F.col("event_ts").isNotNull())
-        .filter(F.col("temperature_c").between(-40, 180))
-        .filter(F.col("vibration_mm_s").between(0, 50))
-        .filter(F.col("power_kw").between(0, 500))
-        .filter(F.col("load_pct").between(0, 100))
-        .dropDuplicates(["reading_id"])
-        .withColumn("metric_date", F.to_date("event_ts"))
-    )
+    normalized = normalize_sensor_rows(sensors, machines)
 
     reading_window = Window.partitionBy("machine_id").orderBy("event_ts")
     rolling_window = reading_window.rowsBetween(-11, 0)
@@ -185,22 +205,28 @@ def build_features(spark: SparkSession, data_dir: str) -> tuple[object, dict[str
         str(processed / "spark_features.parquet")
     )
     evidence = {
+        "source": "mongodb_export",
+        "source_path": str(mongo_export),
         "input_rows": sensors.count(),
         "valid_rows": normalized.count(),
         "feature_rows": features.count(),
         "machines": features.select("machine_id").distinct().count(),
     }
+    (processed / "spark_transform_evidence.json").write_text(
+        json.dumps(evidence, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return features, evidence
 
 
 def main() -> None:
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument("--data-dir", default=os.getenv("IIP_DATA_DIR", "data"))
+    argument_parser.add_argument("--sensor-path", default=None)
     args = argument_parser.parse_args()
     spark = SparkSession.builder.appName("industrial-feature-engineering").getOrCreate()
     spark.conf.set("spark.sql.session.timeZone", "UTC")
     try:
-        _, evidence = build_features(spark, args.data_dir)
+        _, evidence = build_features(spark, args.data_dir, args.sensor_path)
         print(evidence)
     finally:
         spark.stop()

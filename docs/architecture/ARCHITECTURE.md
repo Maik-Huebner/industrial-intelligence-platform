@@ -20,12 +20,12 @@ Die lokale Referenzpipeline benötigt nur die Python-Standardbibliothek und bewe
 
 | Entität | Führendes System | Replikate/Ziele |
 |---|---|---|
-| Fabrik, Linien, Maschinen, Aufträge | PostgreSQL-orientierte CSV und PostgreSQL | Spark-Features; API liest die CSV |
-| rohe Sensormessungen | MongoDB/JSONL-Staging | validiertes CSV, Parquet |
+| Fabrik, Linien, Maschinen, Aufträge | PostgreSQL-orientierte CSV und PostgreSQL | Spark-Features; API liest PostgreSQL |
+| rohe Sensormessungen | MongoDB `sensor_readings` | kontrollierter JSONL-Export, Quarantäne, Parquet |
 | Wartungsexporte | CSV | PostgreSQL, Spark |
 | Störungen | JSON | PostgreSQL normalisierte Events, Spark |
-| Komponenten und Abhängigkeiten | Neo4j/Graph-Staging | Cypher-Abfragen; aktuell kein API-Endpunkt |
-| ML-Prognosen | Spark-JSON und PostgreSQL | API liest Spark-JSON; PostgreSQL archiviert versioniert |
+| Komponenten und Abhängigkeiten | Neo4j/Graph-Staging | parametrisierte Cypher-Abfragen der API |
+| ML-Prognosen | PostgreSQL, erzeugt aus Spark-JSON | API liest die gewählte Modellversion; Historie bleibt versioniert |
 
 IDs entstehen deterministisch. Upserts beziehungsweise `MERGE` machen Wiederholungen idempotent. Rohmessungen werden nicht in Neo4j dupliziert.
 
@@ -33,17 +33,19 @@ IDs entstehen deterministisch. Upserts beziehungsweise `MERGE` machen Wiederholu
 
 1. Quellen und Arbeitsverzeichnis prüfen.
 2. Quellorientierte Dateien deterministisch erzeugen.
-3. Dokumente normalisieren und ungültige Zeilen quarantänisieren.
-4. Spark transformiert Messreihen und berechnet zeitliche Merkmale.
-5. Spark verbindet Stamm-, Wartungs- und Störungsdaten.
-6. MLlib trainiert und bewertet drei getrennte Aufgaben.
-7. Ergebnisse werden idempotent persistiert.
-8. Neo4j-Beziehungen werden per `MERGE` synchronisiert, bleiben aber außerhalb des ML- und API-Pfads.
-9. Ein Qualitätsgate prüft die Ausschussquote.
-10. Der Lauf schreibt einen kompakten Bericht.
+3. Der vollständige MongoDB-Load wird atomar aktiviert und kontrolliert exportiert.
+4. Python normalisiert den Export und schreibt ungültige Zeilen in die Quarantäne.
+5. Das Source Gate prüft Mengen, Identität, Maschinenabdeckung und Ausschussquote.
+6. Spark transformiert den verifizierten Export und berechnet zeitliche Merkmale.
+7. Das Feature Gate prüft Schema, Maschinen, Nullwerte, Klassen und Split-Grenzen.
+8. MLlib trainiert und bewertet drei getrennte Aufgaben; Maschinenmetriken entstehen parallel.
+9. Ergebnisse werden versioniert und idempotent nach PostgreSQL geschrieben.
+10. Neo4j-Beziehungen werden per `MERGE` synchronisiert und über die API abgefragt.
+11. Ein finaler Konsistenzcheck verifiziert Quellen und persistierte Endstände.
+12. Der Lauf schreibt erst danach seinen kompakten Erfolgsbericht.
 
-Große DataFrames werden auf dem gemeinsamen Datenvolume als Parquet transportiert, nie über XCom. FastAPI greift im aktuellen Stand auf CSV- und JSON-Artefakte dieses Volumes zu und nicht direkt auf die drei Datenbanken.
+Große DataFrames werden auf dem gemeinsamen Datenvolume als Parquet transportiert, nie über XCom. FastAPI greift direkt auf PostgreSQL und Neo4j zu. MongoDB bleibt Sensorquelle für den Batch-Pfad und ist bewusst kein Online-Serving-Endpunkt.
 
 ## Sicherheits- und Betriebsgrenzen
 
-Alle Secrets kommen aus `.env`; nur unverwendbare Beispielwerte werden versioniert. Das System setzt lokale Vertrauensgrenzen voraus, nutzt keine TLS-Terminierung und besitzt noch keine rollenbasierte API-Autorisierung. Vor einem realen Betrieb wären Secret-Management, Netzwerksegmentierung, Verschlüsselung, Backup, Audit-Logging und ein freigegebener MLOps-Prozess erforderlich.
+Alle Secrets kommen aus `.env`; nur unverwendbare Beispielwerte werden versioniert. Veröffentlichte Ports binden standardmäßig an `127.0.0.1`. Das System setzt lokale Vertrauensgrenzen voraus, nutzt keine TLS-Terminierung und besitzt keine API-Authentifizierung oder rollenbasierte Autorisierung. Vor einem realen Betrieb sind Secret-Management, Netzwerksegmentierung, Verschlüsselung, Rate Limits, Backup-/Restore-Nachweise, Audit-Logging und ein freigegebener MLOps-Prozess erforderlich.

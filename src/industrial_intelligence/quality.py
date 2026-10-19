@@ -5,9 +5,10 @@ from __future__ import annotations
 import csv
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Iterable
+
+from .quality_contract import semantic_errors
 
 
 @dataclass(slots=True)
@@ -16,6 +17,7 @@ class QualityReport:
     rejected: int = 0
     duplicates: int = 0
     reasons: dict[str, int] = field(default_factory=dict)
+    source: str = "raw_generator_file"
 
     def reject(self, reasons: Iterable[str]) -> None:
         self.rejected += 1
@@ -28,6 +30,7 @@ class QualityReport:
             "rejected": self.rejected,
             "duplicates": self.duplicates,
             "reasons": dict(sorted(self.reasons.items())),
+            "source": self.source,
         }
 
 
@@ -51,42 +54,16 @@ def flatten_document(document: dict[str, object]) -> dict[str, object]:
 
 def validation_errors(record: dict[str, object], machine_ids: set[str]) -> list[str]:
     """Return stable reason codes for a flattened sensor record."""
-    errors: list[str] = []
-    required = ("reading_id", "machine_id", "timestamp", "vibration_mm_s", "power_kw", "load_pct")
-    for key in required:
-        if record.get(key) in (None, ""):
-            errors.append(f"missing_{key}")
-    if record.get("temperature_c") is None:
-        errors.append("missing_temperature_c")
-    if record.get("machine_id") not in machine_ids:
-        errors.append("unknown_machine_id")
-    try:
-        datetime.fromisoformat(str(record.get("timestamp")))
-    except ValueError:
-        errors.append("invalid_timestamp")
-    ranges = {
-        "temperature_c": (-40, 180),
-        "vibration_mm_s": (0, 50),
-        "power_kw": (0, 500),
-        "load_pct": (0, 100),
-    }
-    for key, (lower, upper) in ranges.items():
-        value = record.get(key)
-        if value is None:
-            continue
-        try:
-            numeric = float(value)
-        except (TypeError, ValueError):
-            errors.append(f"non_numeric_{key}")
-            continue
-        if not lower <= numeric <= upper:
-            errors.append(f"out_of_range_{key}")
-    return sorted(set(errors))
+    return semantic_errors(record, machine_ids)
 
 
-def validate_sensor_file(data_dir: Path) -> QualityReport:
+def validate_sensor_file(
+    data_dir: Path,
+    source_path: Path | None = None,
+    source_name: str = "raw_generator_file",
+) -> QualityReport:
     """Normalize valid JSONL records and quarantine invalid or duplicate rows."""
-    raw = data_dir / "raw" / "mongodb" / "sensor_readings.jsonl"
+    raw = source_path or data_dir / "raw" / "mongodb" / "sensor_readings.jsonl"
     machines_path = data_dir / "raw" / "postgres" / "machines.csv"
     processed_dir = data_dir / "processed"
     quarantine_dir = data_dir / "quarantine"
@@ -106,8 +83,9 @@ def validate_sensor_file(data_dir: Path) -> QualityReport:
         "scenario",
         "source",
     ]
-    report = QualityReport()
+    report = QualityReport(source=source_name)
     seen: set[str] = set()
+    previous_reading_id = ""
     with (
         raw.open(encoding="utf-8") as source,
         (processed_dir / "sensor_readings.csv").open("w", newline="", encoding="utf-8") as valid_handle,
@@ -126,7 +104,12 @@ def validate_sensor_file(data_dir: Path) -> QualityReport:
                 record = {}
                 reading_id = ""
                 reasons = ["invalid_json"]
-            if reading_id and reading_id in seen:
+            is_duplicate = (
+                reading_id == previous_reading_id
+                if source_name == "mongodb_export"
+                else reading_id in seen
+            )
+            if reading_id and is_duplicate:
                 reasons.append("duplicate_reading_id")
                 report.duplicates += 1
             if reasons:
@@ -135,11 +118,13 @@ def validate_sensor_file(data_dir: Path) -> QualityReport:
                     json.dumps({"line": line_number, "reasons": reasons, "record": document}, ensure_ascii=False) + "\n"
                 )
                 continue
-            seen.add(reading_id)
+            if source_name == "mongodb_export":
+                previous_reading_id = reading_id
+            else:
+                seen.add(reading_id)
             writer.writerow(record)
             report.valid += 1
     (processed_dir / "quality_report.json").write_text(
         json.dumps(report.as_dict(), indent=2, sort_keys=True), encoding="utf-8"
     )
     return report
-

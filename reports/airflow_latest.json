@@ -1,10 +1,73 @@
 {
-  "status": "success",
-  "quality": {
-    "valid": 994905,
-    "rejected": 5095,
-    "gate": "passed"
+  "status": "passed",
+  "source_quality": {
+    "gate": "source",
+    "status": "passed",
+    "source": "mongodb",
+    "input_rows": 1000000,
+    "valid_rows": 994905,
+    "rejected_rows": 5095,
+    "rejected_fraction": 0.005095,
+    "machine_references": 50,
+    "tolerated_defects": {
+      "missing_temperature_c": 1757,
+      "out_of_range_temperature_c": 1693,
+      "unknown_machine_id": 1645
+    }
   },
-  "postgres_rows": 1000,
-  "neo4j_rows": 200
+  "feature_quality": {
+    "class_counts": {
+      "0": 1891,
+      "1": 3059
+    },
+    "feature_rows": 4950,
+    "gate": "features",
+    "machines": 50,
+    "null_key_or_target_rows": 0,
+    "split": {
+      "purge_after_train": "2026-09-08",
+      "purge_after_validation": "2026-09-28",
+      "rationale": "Future prediction for already-known machines; one day is purged at each boundary because the label uses lead(1).",
+      "strategy": "purged_chronological_60_20_20",
+      "target_horizon_days": 1,
+      "test": [
+        "2026-09-29",
+        "2026-10-17"
+      ],
+      "train": [
+        "2026-07-11",
+        "2026-09-07"
+      ],
+      "validation": [
+        "2026-09-09",
+        "2026-09-27"
+      ]
+    },
+    "split_class_counts": {
+      "test": {
+        "0": 228,
+        "1": 722
+      },
+      "train": {
+        "0": 1342,
+        "1": 1608
+      },
+      "validation": {
+        "0": 293,
+        "1": 657
+      }
+    },
+    "status": "passed"
+  },
+  "postgres_loaded": {
+    "metrics": 50,
+    "predictions": 950
+  },
+  "postgres_prediction_total": 1950,
+  "postgres_model_versions": {
+    "synthetic-v1": 1000,
+    "synthetic-v2-classification-benchmark": 950
+  },
+  "postgres_metric_total": 50,
+  "neo4j_source_rows": 200
 }

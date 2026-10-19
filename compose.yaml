@@ -10,6 +10,7 @@ x-common-env: &common-env
   NEO4J_URI: bolt://neo4j:7687
   NEO4J_USER: neo4j
   NEO4J_PASSWORD: ${NEO4J_PASSWORD:-change-me-neo4j}
+  IIP_CURRENT_MODEL_VERSION: ${IIP_CURRENT_MODEL_VERSION:-synthetic-v2-classification-benchmark}
 
 services:
   postgres:
@@ -18,7 +19,7 @@ services:
       POSTGRES_DB: industrial
       POSTGRES_USER: industrial
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-    ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_HOST_PORT:-5432}:5432"]
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
@@ -35,7 +36,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: industrial
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-change-me}
       MONGO_INITDB_DATABASE: industrial
-    ports: ["${MONGO_HOST_PORT:-27017}:27017"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:${MONGO_HOST_PORT:-27017}:27017"]
     volumes:
       - mongo-data:/data/db
       - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/10-init.js:ro
@@ -53,7 +54,7 @@ services:
       NEO4J_server_memory_heap_initial__size: 256m
       NEO4J_server_memory_heap_max__size: 512m
       NEO4J_server_memory_pagecache_size: 256m
-    ports: ["${NEO4J_HTTP_HOST_PORT:-7474}:7474", "${NEO4J_BOLT_HOST_PORT:-7687}:7687"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:${NEO4J_HTTP_HOST_PORT:-7474}:7474", "${IIP_BIND_ADDRESS:-127.0.0.1}:${NEO4J_BOLT_HOST_PORT:-7687}:7687"]
     volumes:
       - neo4j-data:/data
     healthcheck:
@@ -68,7 +69,7 @@ services:
     command: ["/opt/spark/sbin/start-master.sh"]
     environment:
       SPARK_NO_DAEMONIZE: "true"
-    ports: ["7077:7077", "8081:8080"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:7077:7077", "${IIP_BIND_ADDRESS:-127.0.0.1}:8081:8080"]
     volumes:
       - ./data:/opt/iip/data
       - ./reports:/opt/iip/reports
@@ -89,7 +90,7 @@ services:
     depends_on:
       spark-master:
         condition: service_healthy
-    ports: ["8082:8081"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:8082:8081"]
     volumes:
       - ./data:/opt/iip/data
       - ./reports:/opt/iip/reports
@@ -116,7 +117,7 @@ services:
       dockerfile: docker/app/Dockerfile
     environment: *common-env
     command: ["uvicorn", "industrial_intelligence.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
-    ports: ["${APP_HOST_PORT:-8000}:8000"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:${APP_HOST_PORT:-8000}:8000"]
     volumes:
       - ./data:/opt/iip/data
       - ./reports:/opt/iip/reports
@@ -163,7 +164,7 @@ services:
       dockerfile: docker/airflow/Dockerfile
     environment: *airflow-env
     command: webserver
-    ports: ["${AIRFLOW_HOST_PORT:-8080}:8080"]
+    ports: ["${IIP_BIND_ADDRESS:-127.0.0.1}:${AIRFLOW_HOST_PORT:-8080}:8080"]
     volumes: *airflow-volumes
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]

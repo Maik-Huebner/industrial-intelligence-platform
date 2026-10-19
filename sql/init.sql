@@ -96,6 +96,7 @@ CREATE INDEX IF NOT EXISTS idx_metrics_date ON machine_daily_metrics(metric_date
 CREATE INDEX IF NOT EXISTS idx_events_machine_time ON normalized_machine_events(machine_id, occurred_at DESC);
 CREATE INDEX IF NOT EXISTS idx_maintenance_machine_time ON maintenance_records(machine_id, performed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_predictions_risk ON ml_predictions(prediction_date DESC, risk_probability DESC);
+CREATE INDEX IF NOT EXISTS idx_predictions_version_date ON ml_predictions(model_version, prediction_date DESC, machine_id);
 
 CREATE OR REPLACE VIEW machine_risk_overview AS
 SELECT m.machine_id, m.line_id, m.machine_type, d.metric_date,
@@ -112,4 +113,3 @@ ON CONFLICT DO NOTHING;
 INSERT INTO machine_types(machine_type, description) VALUES
 ('CNC','CNC machining center'), ('PRESS','Industrial press'), ('PUMP','Process pump'),
 ('ROBOT','Industrial robot'), ('CONVEYOR','Conveyor system') ON CONFLICT DO NOTHING;
-
