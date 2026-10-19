@@ -15,35 +15,44 @@
   "persistence": {
     "mongodb_sensor_documents": 1000000,
     "postgres_machine_metrics": 50,
-    "postgres_ml_predictions": 1000,
+    "postgres_ml_predictions": 1950,
+    "postgres_model_versions": 2,
     "neo4j_nodes": 270,
     "neo4j_relationships": 400
   },
   "airflow": {
     "dag_id": "industrial_etl",
     "import_errors": 0,
+    "full_run_id": "hardening_full_20261019T1028Z",
+    "full_run_tasks_successful": 13,
     "full_profile_dag_test": "success",
-    "postgres_rows_written": 1050,
+    "postgres_rows_written_current_run": 1000,
     "neo4j_source_rows_synchronized": 200
   },
   "tests": {
-    "fast_passed": 12,
-    "fast_deselected": 4,
-    "coverage_percent": 53,
-    "container_integration_passed": 4
+    "host_passed": 28,
+    "host_skipped": 6,
+    "container_inclusive_passed": 32,
+    "spark_container_contracts_passed": 2,
+    "coverage_percent": null,
+    "coverage_note": "Coverage was not measured in the final audit."
   },
   "model_metrics": {
-    "logistic_accuracy": 0.76,
-    "logistic_f1": 0.6563636363636364,
-    "decision_tree_accuracy": 0.742,
-    "decision_tree_f1": 0.6633985912315444,
-    "regression_rmse_c": 0.5212466108067155,
-    "regression_mae_c": 0.4430003911843642,
-    "regression_baseline_rmse_c": 3.5364868642297838,
-    "kmeans_silhouette": 0.36206438240385647
+    "selected_classifier": "logistic_regression",
+    "classification_accuracy": 0.7231578947368421,
+    "classification_macro_f1": 0.534274663311431,
+    "classification_balanced_accuracy": 0.5372807017543859,
+    "classification_pr_auc": 0.8545931686269873,
+    "classification_roc_auc": 0.6323079166059192,
+    "classification_confusion_matrix": {"tn": 41, "fp": 187, "fn": 76, "tp": 646},
+    "regression_rmse_c": 0.5143955056663783,
+    "regression_mae_c": 0.43921262802728117,
+    "regression_baseline_rmse_c": 3.5573005623037917,
+    "kmeans_silhouette": 0.5543824118076053
   },
   "publication": {
-    "status": "blocked",
-    "reason": "GitHub CLI token invalid; authorized login not verified"
+    "source_release_status": "ready_after_final_clean_tree_gate",
+    "deployment_status": "not_ready_for_public_deployment",
+    "pushed": false
   }
 }

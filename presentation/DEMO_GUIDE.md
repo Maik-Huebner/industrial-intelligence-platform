@@ -28,7 +28,7 @@ Voraussetzung: `.env` aus `.env.example`, laufender Docker-Stack. Bei Portkonfli
 
    Danach `reports/classification_benchmark.json` öffnen und die finale Confusion Matrix 41 / 187 / 76 / 646 zeigen.
 
-4. Airflow öffnen: `http://localhost:8080`, DAG `industrial_etl`. Zehn Tasks und letzten erfolgreichen Lauf zeigen.
+4. Airflow öffnen: `http://localhost:8080`, DAG `industrial_etl`. 13 Tasks und letzten erfolgreichen Lauf zeigen.
 
 5. Optional Neo4j Browser öffnen und ausführen:
 
@@ -58,7 +58,7 @@ MLlib                  950 neue Testprognosen
 MongoDB         1.000.000 Sensordokumente
 Neo4j                 270 Knoten | 400 Beziehungen
 Airflow            Full-DAG erfolgreich
-Tests              17 schnell + 4 Integration bestanden
+Tests              32 inklusive Containerintegration bestanden
 ```
 
 ## Wenn etwas schiefgeht

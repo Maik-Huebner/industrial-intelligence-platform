@@ -20,7 +20,7 @@ docker compose exec airflow-scheduler airflow dags list-import-errors
 ## Ausgeführter Abnahmestand vom 19. Oktober 2026
 
 - 32 Tests bestanden: schnelle Tests plus vier reale Containerintegrationstests gegen PostgreSQL, MongoDB und Neo4j.
-- 1 Spark-Vertragstest auf dem Host übersprungen, weil PySpark dort nicht installiert war.
+- 2 Spark-Vertragstests auf dem Host übersprungen, weil PySpark dort nicht installiert war; beide bestanden im vorgesehenen Spark-3.5.3-Container.
 - Compose-Konfiguration valide; Airflow-DAG-Import ohne Fehler.
 - `industrial_etl` mit 13 Tasks gelistet.
 - vollständiger Lauf `hardening_full_20261019T1028Z` mit 1.000.000 Messungen und allen 13 Tasks erfolgreich.

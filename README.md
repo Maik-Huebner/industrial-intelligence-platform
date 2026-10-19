@@ -180,6 +180,13 @@ presentation/                 Zehn-Minuten-Präsentation und Demo-Unterlagen
 
 ## Dokumentation
 
+- [Final Quality Audit](docs/audit/FINAL_QUALITY_AUDIT.md)
+- [Release Readiness](docs/audit/RELEASE_READINESS.md)
+- [Audit der 13 Unterrichtsthemen](docs/audit/COURSE_COVERAGE_AUDIT.md)
+- [Architektur- und Datenintegritätsaudit](docs/audit/ARCHITECTURE_AUDIT.md)
+- [MLlib-Audit](docs/audit/MLLIB_AUDIT.md)
+- [Infrastruktur- und Sicherheitsaudit](docs/audit/INFRASTRUCTURE_SECURITY_AUDIT.md)
+- [Sicherheit einer öffentlichen Quellcodefreigabe](docs/audit/PUBLIC_RELEASE_SECURITY.md)
 - [Architektur und Datenfluss](docs/architecture/ARCHITECTURE.md)
 - [Vollständiger End-to-End-Datenfluss](docs/architecture/END_TO_END_DATA_FLOW.md)
 - [Systemarchitektur](docs/architecture/SYSTEM_ARCHITECTURE.md)
@@ -199,6 +206,8 @@ presentation/                 Zehn-Minuten-Präsentation und Demo-Unterlagen
 - [Betrieb](docs/operations/RUNBOOK.md)
 - [Unterrichtsabdeckung](docs/COURSE_COVERAGE.md)
 - [Abschlussbericht](docs/FINAL_REPORT.md)
+
+Aktuelle Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Final_Quality_Audit.pptx`. Das zeitlich kalibrierte Sprecherskript, der Live-/Fallback-Ablauf und 22 Tutorfragen liegen daneben als Markdown-Dateien. Ältere Decks bleiben als historische Entwicklungsstände erhalten.
 
 ## Grenzen
 
