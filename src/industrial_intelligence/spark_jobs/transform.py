@@ -88,9 +88,71 @@ def build_features(spark: SparkSession, data_dir: str) -> tuple[object, dict[str
         .fillna(0, subset=["maintenance_count", "maintenance_minutes", "failure_count", "downtime_minutes"])
         .withColumn("machine_age_years", F.lit(2026) - F.col("installed_year"))
     )
+    daily_window = Window.partitionBy("machine_id").orderBy("metric_date")
+    prior_week = daily_window.rowsBetween(-7, -1)
+    historical = (
+        joined.withColumn("previous_avg_temperature_c", F.lag("avg_temperature_c").over(daily_window))
+        .withColumn("previous_avg_vibration_mm_s", F.lag("avg_vibration_mm_s").over(daily_window))
+        .withColumn("previous_anomaly_rate", F.lag("anomaly_rate").over(daily_window))
+        .withColumn("prior_7d_avg_temperature_c", F.avg("avg_temperature_c").over(prior_week))
+        .withColumn("prior_7d_temperature_stddev", F.stddev_pop("avg_temperature_c").over(prior_week))
+        .withColumn("prior_7d_avg_vibration_mm_s", F.avg("avg_vibration_mm_s").over(prior_week))
+        .withColumn("prior_7d_anomaly_rate", F.avg("anomaly_rate").over(prior_week))
+        .withColumn(
+            "temperature_change_1d",
+            F.col("avg_temperature_c")
+            - F.coalesce(F.col("previous_avg_temperature_c"), F.col("avg_temperature_c")),
+        )
+        .withColumn(
+            "vibration_change_1d",
+            F.col("avg_vibration_mm_s")
+            - F.coalesce(F.col("previous_avg_vibration_mm_s"), F.col("avg_vibration_mm_s")),
+        )
+        .withColumn(
+            "temperature_deviation_7d",
+            F.col("avg_temperature_c")
+            - F.coalesce(F.col("prior_7d_avg_temperature_c"), F.col("avg_temperature_c")),
+        )
+        .withColumn(
+            "vibration_deviation_7d",
+            F.col("avg_vibration_mm_s")
+            - F.coalesce(F.col("prior_7d_avg_vibration_mm_s"), F.col("avg_vibration_mm_s")),
+        )
+        .withColumn(
+            "anomaly_rate_deviation_7d",
+            F.col("anomaly_rate")
+            - F.coalesce(F.col("prior_7d_anomaly_rate"), F.col("anomaly_rate")),
+        )
+        .withColumn(
+            "prior_7d_avg_temperature_c",
+            F.coalesce(F.col("prior_7d_avg_temperature_c"), F.col("avg_temperature_c")),
+        )
+        .withColumn(
+            "prior_7d_avg_vibration_mm_s",
+            F.coalesce(F.col("prior_7d_avg_vibration_mm_s"), F.col("avg_vibration_mm_s")),
+        )
+        .withColumn(
+            "prior_7d_anomaly_rate",
+            F.coalesce(F.col("prior_7d_anomaly_rate"), F.col("anomaly_rate")),
+        )
+        .withColumn("day_of_week", F.dayofweek("metric_date").cast("double"))
+        .withColumn("day_of_week_sin", F.sin(2 * F.lit(3.141592653589793) * (F.col("day_of_week") - 1) / 7))
+        .withColumn("day_of_week_cos", F.cos(2 * F.lit(3.141592653589793) * (F.col("day_of_week") - 1) / 7))
+        .fillna(
+            0.0,
+            subset=[
+                "prior_7d_temperature_stddev",
+                "temperature_change_1d",
+                "vibration_change_1d",
+                "temperature_deviation_7d",
+                "vibration_deviation_7d",
+                "anomaly_rate_deviation_7d",
+            ],
+        )
+    )
     future_window = Window.partitionBy("machine_id").orderBy("metric_date")
     features = (
-        joined.withColumn("future_avg_temperature_c", F.lead("avg_temperature_c").over(future_window))
+        historical.withColumn("future_avg_temperature_c", F.lead("avg_temperature_c").over(future_window))
         .withColumn("future_failure_count", F.lead("failure_count").over(future_window))
         .withColumn("future_anomaly_rate", F.lead("anomaly_rate").over(future_window))
         .withColumn("future_max_vibration_mm_s", F.lead("max_vibration_mm_s").over(future_window))

@@ -11,7 +11,7 @@ Die Plattform ist als integrierte End-to-End-Anwendung umgesetzt. Sie erzeugt de
 | Bereich | Implementiert | Tatsächlich getestet | Ergebnis |
 |---|:---:|:---:|---|
 | Reproduzierbarer Generator | ja | ja | Full-Profil: 1.000.000 Messungen |
-| PostgreSQL | ja | ja | gesund; 50 Maschinen, 1.000 ML-Prognosen |
+| PostgreSQL | ja | ja | gesund; 50 Maschinen, 950 neue und 1.000 erhaltene ML-Prognosen |
 | MongoDB | ja | ja | gesund; 1.000.000 Sensordokumente |
 | Neo4j | ja | ja | gesund; 270 Knoten, 400 Beziehungen |
 | Python-ETL und Datenqualität | ja | ja | 994.905 valide, 5.095 Quarantänefälle |
@@ -19,7 +19,7 @@ Die Plattform ist als integrierte End-to-End-Anwendung umgesetzt. Sie erzeugt de
 | Spark DataFrames/SQL/Joins/Windows/Aggregationen | ja | ja | 4.950 Feature-Zeilen |
 | MLlib Klassifikation/Regression/KMeans | ja | ja | echte Kennzahlen gespeichert |
 | FastAPI | ja | ja | Container gesund; Prognose-Endpunkt abgefragt |
-| Tests | ja | ja | 12 schnelle + 4 Containerintegrationstests bestanden |
+| Tests | ja | ja | 17 schnelle + 4 Containerintegrationstests bestanden |
 | Präsentation und Begleitmaterial | ja | ja | zehn Folien, visuell geprüft |
 | GitHub-Veröffentlichung | vorbereitet | nein | wegen ungültiger `gh`-Authentifizierung ausgesetzt |
 
@@ -31,7 +31,7 @@ Die folgende Kombination lief gleichzeitig in Docker Compose: PostgreSQL 16.4, M
 
 ## 3. Datenbankintegration
 
-- PostgreSQL: 50 Maschinen, 600 Produktionsaufträge, 320 Wartungen, 180 normalisierte Störungsereignisse, 50 Tagesmetriken und 1.000 ML-Prognosen. Upserts verwenden Primärschlüssel und `ON CONFLICT`.
+- PostgreSQL: 50 Maschinen, 600 Produktionsaufträge, 320 Wartungen, 180 normalisierte Störungsereignisse, 50 Tagesmetriken und 1.950 versionierte ML-Prognosen. Davon gehören 950 zur neuen Benchmark-Version; die 1.000 vorherigen Resultate bleiben erhalten. Upserts verwenden Primärschlüssel und `ON CONFLICT`.
 - MongoDB: 1.000.000 verschachtelte Sensordokumente. Eindeutiger `reading_id`-Index und Batch-Upserts sichern Wiederholbarkeit.
 - Neo4j: 270 Knoten und 400 gerichtete Beziehungen. Constraints und `MERGE` verhindern Duplikate; der Graph enthält bewusst technische Beziehungen statt eine Million Messknoten.
 
@@ -54,24 +54,23 @@ Die Qualitätsprüfung akzeptierte 994.905 Messungen und stellte 5.095 Datensät
 
 `industrial_etl` enthält exakt die zehn geforderten fachlichen Schritte: Quellen validieren, Daten extrahieren, normalisieren, Spark ausführen, Maschinenmetriken berechnen, MLlib ausführen, PostgreSQL persistieren, Neo4j synchronisieren, Qualitäts-Gate prüfen und Zusammenfassung schreiben. Retry, Timeout, ein aktiver Lauf und kleine XCom-Payloads sind konfiguriert.
 
-Am 19. Oktober 2026 wurde `airflow dags test industrial_etl 2026-10-19` mit `IIP_PROFILE=full` ausgeführt. Der DagRun endete mit `state=success`. Die Zusammenfassung meldet `postgres_rows=1050`, `neo4j_rows=200` und ein bestandenes Qualitäts-Gate. Der Wert 200 bezeichnet synchronisierte Komponenten-Zeilen; daraus entstehen zwei Beziehungstypen und insgesamt 400 Graphbeziehungen.
+Am 19. Oktober 2026 wurde `airflow dags test industrial_etl 2026-10-19` mit `IIP_PROFILE=full` ausgeführt. Der DagRun endete mit `state=success`. Die Zusammenfassung meldet `postgres_rows=1000` (50 Tagesmetriken plus 950 neue Testprognosen), `neo4j_rows=200` und ein bestandenes Qualitäts-Gate. Der Wert 200 bezeichnet synchronisierte Komponenten-Zeilen; daraus entstehen zwei Beziehungstypen und insgesamt 400 Graphbeziehungen.
 
 ## 6. Spark-Transformation
 
 Der Spark-Lauf las 1.000.000 JSONL-Messungen, normalisierte Typen und Zeitstempel, filterte ungültige Werte und entfernte Duplikate. DataFrame-Operationen, Spark SQL, mehrere Joins, `lag`, rollender Mittelwert, `lead`, Ranking und Aggregationen sind im selben Feature-Engineering-Pfad integriert. Ergebnis: 994.905 valide Messungen und 4.950 tagesbezogene Feature-Zeilen für 50 Maschinen. Die Ausgabe liegt partitioniert als Parquet vor.
 
-Das Ziel für Klassifikation und Regression wird ausschließlich aus dem Folgetag gebildet. Dadurch fließen keine zukünftigen Outcomes in die Merkmale desselben Tages ein.
+Das Ziel für Klassifikation und Regression wird ausschließlich aus dem Folgetag gebildet. Die neuen Klassifikationsmerkmale verwenden zusätzlich rückwärtsgerichtete 7-Tage-Fenster, Tagesänderungen, Abweichungen vom historischen Niveau und zyklische Wochentagsmerkmale. Die Fenster enden am Vortag. Zukünftige Outcomes, `risk_rank` und alle `future_*`-Spalten sind als Klassifikationsmerkmale ausgeschlossen.
 
 ## 7. MLlib-Modelle und echte Kennzahlen
 
-Validierung: chronologischer Holdout mit Cutoff 27. September 2026; 3.950 Trainings- und 1.000 Testzeilen. Die ebenfalls gespeicherte `randomSplit`-Aufteilung 4.003/947 ist nur eine Unterrichtsdemonstration.
+Die Klassifikation verwendet einen purged chronologischen 60/20/20-Split: 2.950 Trainings-, 950 Validierungs- und 950 Testzeilen; der 8. und 28. September sind wegen des eintägigen Label-Horizonts ausgelassen. Parameter, Klassengewichte und Schwellenwerte stammen ausschließlich aus Training und Validierung. Der Test wurde nicht für die Auswahl verwendet. Regression und KMeans behalten den bisherigen 80/20-Pfad unverändert.
 
 | Aufgabe | Modell | Kennzahl | Ergebnis |
 |---|---|---|---:|
-| Klassifikation | Logistische Regression | Accuracy | 0,760 |
-| Klassifikation | Logistische Regression | F1 gewichtet | 0,656 |
-| Klassifikation | Entscheidungsbaum | Accuracy | 0,742 |
-| Klassifikation | Entscheidungsbaum | F1 gewichtet | 0,663 |
+| Klassifikation | Majority-Baseline | Accuracy / Macro-F1 / Balanced Accuracy | 0,760 / 0,432 / 0,500 |
+| Klassifikation | Finale logistische Regression | Accuracy / Macro-F1 / Balanced Accuracy | 0,723 / 0,534 / 0,537 |
+| Klassifikation | Finale logistische Regression | PR-AUC / ROC-AUC | 0,855 / 0,632 |
 | Regression | Lineare Regression | RMSE | 0,521 °C |
 | Regression | Lineare Regression | MAE | 0,443 °C |
 | Regression | Mittelwert-Baseline | RMSE | 3,536 °C |
@@ -79,14 +78,18 @@ Validierung: chronologischer Holdout mit Cutoff 27. September 2026; 3.950 Traini
 
 ### Ehrliche Interpretation
 
-Die logistische Regression klassifizierte im Test alle 1.000 Fälle als positiv: 760 richtig positive und 240 falsch positive Fälle. Die Accuracy von 0,760 entsteht damit wesentlich aus der Klassenverteilung und belegt keine brauchbare Trennschärfe. Der Entscheidungsbaum hat eine etwas bessere F1, bleibt aber ein Modell auf synthetischen Daten. Die Regression schlägt die Mittelwert-Baseline deutlich. Das KMeans-Ergebnis zeigt einen kleinen Anomalie-/Verschleißcluster mit 85 Zeilen sowie zwei größere Lastzustände; eine technische Benennung benötigt weiterhin Domänenvalidierung.
+Die frühere logistische Regression klassifizierte alle 1.000 Testfälle positiv. Der neue Benchmark vergleicht Majority-Baseline, logistische Regression, Decision Tree, Random Forest und Gradient Boosted Trees. Die logistische Regression gewinnt nach Validierungs-Macro-F1 und Balanced Accuracy. Nach dem finalen Refit auf Training plus Validierung lautet die unabhängige Test-Confusion-Matrix: 41 TN, 187 FP, 76 FN und 646 TP. Sie sagt damit beide Klassen voraus und verbessert Macro-F1 um 0,102 sowie Balanced Accuracy um 0,037 gegenüber der Majority-Baseline. Die Accuracy sinkt auf 0,723, weil negative Vorhersagen nicht länger vollständig vermieden werden.
+
+Die Trennung ist messbar, aber nicht stark: Recall für Klasse 0 beträgt nur 0,180. 2.998 von 3.059 positiven Labels erfüllen den synthetischen Folgetag-Vibrationsgrenzwert; 2.726 entstehen ausschließlich daraus. Zusätzlich steigt der Positivanteil zeitlich von 54,51 Prozent im Training auf 76,00 Prozent im Test. Diese Label-Dominanz und der Drift erklären das frühere Ein-Klassen-Verhalten. Druckmerkmale konnten nicht untersucht werden, weil der Quellgenerator keinen Drucksensor enthält. Der vollständige Vergleich mit allen klassenweisen Metriken, Laufzeiten, Feature-Abtrag und Generator-Empfehlungen steht in `docs/ml/CLASSIFICATION_BENCHMARK.md`.
+
+Die Regression schlägt die Mittelwert-Baseline deutlich. Das KMeans-Ergebnis zeigt einen kleinen Anomalie-/Verschleißcluster mit 85 Zeilen sowie zwei größere Lastzustände; eine technische Benennung benötigt weiterhin Domänenvalidierung.
 
 Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sind synthetisch.
 
 ## 8. Testergebnisse
 
-- Schnelltests: 12 bestanden, 4 wegen Markierung abgewählt, eine Deprecation-Warnung; gemessene Gesamt-Coverage 53 Prozent. Generator und lokale Pipeline erreichen 100 Prozent Modul-Coverage, Datenqualität 85 Prozent.
-- Containerintegration: 4 bestanden in 0,65 Sekunden gegen die laufenden Dienste und das Full-Profil.
+- Schnelltests: 17 bestanden, 5 wegen Markierung abgewählt, eine Deprecation-Warnung. Neue Tests prüfen klassenweise Metriken, die Entlarvung einer Ein-Klassen-Vorhersage und ausschließlich validierungsbasierte Threshold-Auswahl.
+- Containerintegration: 4 bestanden in 0,82 Sekunden gegen die laufenden Dienste und das Full-Profil.
 - Airflow: keine Importfehler; DAG gelistet; Full-DAG erfolgreich.
 - Docker Compose: Konfiguration validiert; Images für App, Spark-Submit und Airflow gebaut.
 - API: Healthcheck und `/predictions?risk=high` im Container erfolgreich.
@@ -94,7 +97,7 @@ Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sin
 
 ## 9. Bekannte Probleme und Grenzen
 
-1. Die Klassifikation trennt die Klassen nicht sinnvoll; die Confusion-Matrix ist wichtiger als die Accuracy.
+1. Die Klassifikation trennt beide Klassen nachweisbar besser als die Majority-Baseline, bleibt mit Recall 0,180 für Klasse 0 aber zu schwach für eine fachliche Freigabe.
 2. Synthetische Daten belegen keine reale Vorhersageleistung, Sicherheit oder Wirtschaftlichkeit.
 3. Eine Million Zeilen ist ein Skalierungsnachweis, aber noch kein zwingender Grund für einen Spark-Cluster.
 4. Das lokale Setup verwendet Beispielpasswörter aus `.env.example`; reale Geheimnisse müssen außerhalb von Git verwaltet werden.
@@ -105,7 +108,7 @@ Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sin
 
 Fachdokumentation: `README.md` sowie die Verzeichnisse `docs/architecture`, `docs/databases`, `docs/etl`, `docs/airflow`, `docs/spark`, `docs/ml`, `docs/testing` und `docs/operations`. Die konkrete Tageszuordnung steht in `docs/COURSE_COVERAGE.md`.
 
-Präsentation: `presentation/Industrial_Intelligence_Platform_2026.pptx`. Sprechertext, Demo, Fallback, Tutorfragen und Lernzusammenfassung liegen daneben als Markdown-Dateien.
+Aktualisierte Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Classification_Benchmark.pptx`. Die vorherige Fassung bleibt unverändert erhalten. Sprechertext, Demo, Fallback, Tutorfragen und Lernzusammenfassung liegen daneben als Markdown-Dateien.
 
 ## 11. Git, Release-Gates und Veröffentlichung
 
@@ -114,6 +117,7 @@ Die lokalen Release-Gates umfassten Tests, Full-DAG, Compose-Validierung, Gesund
 - `1ccd177` – `feat: implement industrial intelligence platform`
 - `639580f` – `test: add integration and end-to-end evidence`
 - `fecfb51` – `docs: complete documentation and final presentation`
+- `7dfd822` – `docs: record validated release status`
 
 Eine abschließende Statusaktualisierung dokumentiert Release-Prüfung und Publikationsblocker. Der vollständige, maßgebliche Stand ist über `git log --oneline` nachvollziehbar.
 

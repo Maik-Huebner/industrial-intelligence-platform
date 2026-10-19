@@ -5,6 +5,6 @@
     "rejected": 5095,
     "gate": "passed"
   },
-  "postgres_rows": 1050,
+  "postgres_rows": 1000,
   "neo4j_rows": 200
 }

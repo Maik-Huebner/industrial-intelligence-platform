@@ -44,7 +44,11 @@ def test_loaded_full_profile_is_consistent() -> None:
         assert connection.execute("SELECT count(*) FROM machines").fetchone()[0] == 50
         assert connection.execute("SELECT count(*) FROM production_orders").fetchone()[0] == 600
         assert connection.execute("SELECT count(*) FROM machine_daily_metrics").fetchone()[0] == 50
-        assert connection.execute("SELECT count(*) FROM ml_predictions").fetchone()[0] == 1_000
+        current_predictions = connection.execute(
+            "SELECT count(*) FROM ml_predictions WHERE model_version = %s",
+            ("synthetic-v2-classification-benchmark",),
+        ).fetchone()[0]
+        assert current_predictions == 950
     assert MongoClient(os.environ["MONGO_URI"])["industrial"]["sensor_readings"].count_documents({}) == 1_000_000
     with GraphDatabase.driver(os.environ["NEO4J_URI"], auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PASSWORD"])) as driver:
         records, _, _ = driver.execute_query("MATCH (c:Component) RETURN count(c) AS count")

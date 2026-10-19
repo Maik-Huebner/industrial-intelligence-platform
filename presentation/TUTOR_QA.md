@@ -14,15 +14,15 @@ Fester Seed, deterministische IDs und Zeitverläufe, versionierte Abhängigkeite
 
 ## 4. Wie verhindert die Pipeline Data Leakage?
 
-Merkmale entstehen pro Maschine und Tag. Labels und Regressionsziel werden mit `lead` aus dem Folgetag gebildet. Train und Test werden anschließend chronologisch am Datum getrennt.
+Merkmale entstehen pro Maschine und Tag. Rückwärtsgerichtete Fenster enden am Vortag. Labels und Regressionsziel werden mit `lead` aus dem Folgetag gebildet. Der Klassifikationssplit ist chronologisch und lässt an beiden Grenzen je einen Tag aus, damit der eintägige Target-Horizont nicht über eine Grenze reicht.
 
-## 5. Warum ist 76 Prozent Accuracy hier schlecht?
+## 5. Warum war 76 Prozent Accuracy hier schlecht?
 
-Weil die logistische Regression alle Testfälle positiv vorhersagt. Bei 760 positiven von 1.000 Fällen entstehen 76 Prozent Accuracy ohne Trennschärfe. Confusion-Matrix, Precision und F1 müssen gemeinsam gelesen werden.
+Die frühere logistische Regression sagte alle 1.000 Testfälle positiv voraus. Bei 760 positiven Fällen entstanden 76 Prozent Accuracy ohne Trennschärfe. Das neue Modell erreicht geringere Accuracy von 0,723, verbessert aber Macro-F1 auf 0,534 und sagt beide Klassen voraus.
 
 ## 6. Warum wird `randomSplit` trotzdem verwendet?
 
-Nur als explizites Unterrichtsbeispiel. Der Report speichert seine Größen, aber die finalen Kennzahlen stammen aus einem chronologischen Holdout, der für Zeitreihen methodisch sinnvoller ist.
+Nur als explizites Unterrichtsbeispiel für Regression und Clustering. Die Klassifikationsauswahl nutzt einen purged chronologischen 60/20/20-Split. `randomSplit` beeinflusst weder Parameter noch Schwellenwert oder Modellwahl.
 
 ## 7. Was macht den Airflow-DAG robust?
 
@@ -39,4 +39,3 @@ Die Cluster sind nur mäßig getrennt. Ein kleiner Cluster von 85 Zeilen hat seh
 ## 10. Was fehlt für Produktion?
 
 Echte und governance-geprüfte Daten, fachlich validierte Labels, Kostenmatrix, Security und Rollen, Secrets-Management, Monitoring, SLA, Modellregistry, Drift-Erkennung, Rollback, Lasttests und ein kontrollierter Pilotbetrieb.
-

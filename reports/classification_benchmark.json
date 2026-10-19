@@ -1,0 +1,824 @@
+{
+  "split": {
+    "strategy": "purged_chronological_60_20_20",
+    "target_horizon_days": 1,
+    "train": [
+      "2026-07-11",
+      "2026-09-07"
+    ],
+    "purge_after_train": "2026-09-08",
+    "validation": [
+      "2026-09-09",
+      "2026-09-27"
+    ],
+    "purge_after_validation": "2026-09-28",
+    "test": [
+      "2026-09-29",
+      "2026-10-17"
+    ],
+    "rationale": "Future prediction for already-known machines; one day is purged at each boundary because the label uses lead(1)."
+  },
+  "counts": {
+    "all": 4950,
+    "train": 2950,
+    "validation": 950,
+    "test": 950
+  },
+  "class_distribution": {
+    "all": {
+      "0": 1891,
+      "1": 3059
+    },
+    "train": {
+      "0": 1342,
+      "1": 1608
+    },
+    "validation": {
+      "0": 293,
+      "1": 657
+    },
+    "test": {
+      "0": 228,
+      "1": 722
+    }
+  },
+  "class_weights": {
+    "0": 1.0991058122205664,
+    "1": 0.9172885572139303
+  },
+  "features": [
+    "avg_temperature_c",
+    "temperature_stddev",
+    "avg_vibration_mm_s",
+    "max_vibration_mm_s",
+    "avg_power_kw",
+    "avg_load_pct",
+    "anomaly_rate",
+    "machine_age_years",
+    "criticality",
+    "maintenance_count",
+    "prior_7d_avg_temperature_c",
+    "prior_7d_temperature_stddev",
+    "prior_7d_avg_vibration_mm_s",
+    "prior_7d_anomaly_rate",
+    "temperature_change_1d",
+    "vibration_change_1d",
+    "temperature_deviation_7d",
+    "vibration_deviation_7d",
+    "anomaly_rate_deviation_7d",
+    "day_of_week_sin",
+    "day_of_week_cos",
+    "machine_type via one-hot encoding"
+  ],
+  "excluded_as_target_leakage": [
+    "future_avg_temperature_c",
+    "future_failure_count",
+    "future_anomaly_rate",
+    "future_max_vibration_mm_s",
+    "risk_rank"
+  ],
+  "pressure_feature": "not_available_in_source_schema",
+  "feature_ablation": {
+    "base_logistic_validation": {
+      "accuracy": 0.6536842105263158,
+      "macro_f1": 0.5607359342038505,
+      "weighted_f1": 0.6381573817584898,
+      "balanced_accuracy": 0.5595841060565919,
+      "per_class": {
+        "0": {
+          "precision": 0.41818181818181815,
+          "recall": 0.31399317406143346,
+          "f1": 0.35867446393762176,
+          "support": 293
+        },
+        "1": {
+          "precision": 0.7246575342465753,
+          "recall": 0.8051750380517504,
+          "f1": 0.7627974044700793,
+          "support": 657
+        }
+      },
+      "confusion_matrix": {
+        "tn": 92,
+        "fp": 201,
+        "fn": 128,
+        "tp": 529
+      },
+      "prediction_counts": {
+        "0": 220,
+        "1": 730
+      },
+      "roc_auc": 0.6202201547004951,
+      "pr_auc": 0.8011291023102062
+    },
+    "engineered_logistic_validation": {
+      "accuracy": 0.6105263157894737,
+      "macro_f1": 0.5728915545532312,
+      "weighted_f1": 0.6214697570000123,
+      "balanced_accuracy": 0.5822722998841565,
+      "per_class": {
+        "0": {
+          "precision": 0.3973333333333333,
+          "recall": 0.5085324232081911,
+          "f1": 0.44610778443113774,
+          "support": 293
+        },
+        "1": {
+          "precision": 0.7495652173913043,
+          "recall": 0.6560121765601218,
+          "f1": 0.6996753246753247,
+          "support": 657
+        }
+      },
+      "confusion_matrix": {
+        "tn": 149,
+        "fp": 144,
+        "fn": 226,
+        "tp": 431
+      },
+      "prediction_counts": {
+        "0": 375,
+        "1": 575
+      },
+      "roc_auc": 0.6262512922010794,
+      "pr_auc": 0.8018915154739255
+    }
+  },
+  "models": {
+    "dummy_majority": {
+      "parameters": {
+        "strategy": "training_majority",
+        "constant_prediction": 1
+      },
+      "threshold": null,
+      "class_weighting": "none",
+      "scale_numeric_features": false,
+      "training_seconds": 0.0,
+      "tuning_seconds": 0.0,
+      "validation": {
+        "accuracy": 0.6915789473684211,
+        "macro_f1": 0.40883634100808963,
+        "weighted_f1": 0.5654852127206629,
+        "balanced_accuracy": 0.5,
+        "per_class": {
+          "0": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 293
+          },
+          "1": {
+            "precision": 0.6915789473684211,
+            "recall": 1.0,
+            "f1": 0.8176726820161793,
+            "support": 657
+          }
+        },
+        "confusion_matrix": {
+          "tn": 0,
+          "fp": 293,
+          "fn": 0,
+          "tp": 657
+        },
+        "prediction_counts": {
+          "0": 0,
+          "1": 950
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.6915789473684211
+      },
+      "test": {
+        "accuracy": 0.76,
+        "macro_f1": 0.4318181818181818,
+        "weighted_f1": 0.6563636363636364,
+        "balanced_accuracy": 0.5,
+        "per_class": {
+          "0": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 228
+          },
+          "1": {
+            "precision": 0.76,
+            "recall": 1.0,
+            "f1": 0.8636363636363636,
+            "support": 722
+          }
+        },
+        "confusion_matrix": {
+          "tn": 0,
+          "fp": 228,
+          "fn": 0,
+          "tp": 722
+        },
+        "prediction_counts": {
+          "0": 0,
+          "1": 950
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.76
+      },
+      "feature_importance": []
+    },
+    "logistic_regression": {
+      "parameters": {
+        "regParam": 0.05,
+        "elasticNetParam": 0.5
+      },
+      "threshold": 0.58,
+      "class_weighting": "inverse_frequency_from_training_only",
+      "scale_numeric_features": true,
+      "training_seconds": 1.4190575000829995,
+      "tuning_seconds": 4.89774975227192,
+      "validation": {
+        "accuracy": 0.6105263157894737,
+        "macro_f1": 0.5728915545532312,
+        "weighted_f1": 0.6214697570000123,
+        "balanced_accuracy": 0.5822722998841565,
+        "per_class": {
+          "0": {
+            "precision": 0.3973333333333333,
+            "recall": 0.5085324232081911,
+            "f1": 0.44610778443113774,
+            "support": 293
+          },
+          "1": {
+            "precision": 0.7495652173913043,
+            "recall": 0.6560121765601218,
+            "f1": 0.6996753246753247,
+            "support": 657
+          }
+        },
+        "confusion_matrix": {
+          "tn": 149,
+          "fp": 144,
+          "fn": 226,
+          "tp": 431
+        },
+        "prediction_counts": {
+          "0": 375,
+          "1": 575
+        },
+        "roc_auc": 0.6262512922010794,
+        "pr_auc": 0.8018915154739255
+      },
+      "test": {
+        "accuracy": 0.7452631578947368,
+        "macro_f1": 0.504799076371657,
+        "weighted_f1": 0.6842390405293632,
+        "balanced_accuracy": 0.5248153277931672,
+        "per_class": {
+          "0": {
+            "precision": 0.38333333333333336,
+            "recall": 0.10087719298245613,
+            "f1": 0.1597222222222222,
+            "support": 228
+          },
+          "1": {
+            "precision": 0.7696629213483146,
+            "recall": 0.9487534626038782,
+            "f1": 0.8498759305210919,
+            "support": 722
+          }
+        },
+        "confusion_matrix": {
+          "tn": 23,
+          "fp": 205,
+          "fn": 37,
+          "tp": 685
+        },
+        "prediction_counts": {
+          "0": 60,
+          "1": 890
+        },
+        "roc_auc": 0.6321256742965446,
+        "pr_auc": 0.8548052667073334
+      },
+      "feature_importance": [],
+      "candidates": [
+        {
+          "parameters": {
+            "regParam": 0.01,
+            "elasticNetParam": 0.0
+          },
+          "threshold": 0.64,
+          "macro_f1": 0.5161192035771651,
+          "balanced_accuracy": 0.5399530392049912,
+          "training_seconds": 3.478692252188921
+        },
+        {
+          "parameters": {
+            "regParam": 0.05,
+            "elasticNetParam": 0.5
+          },
+          "threshold": 0.58,
+          "macro_f1": 0.5728915545532312,
+          "balanced_accuracy": 0.5822722998841565,
+          "training_seconds": 1.4190575000829995
+        }
+      ]
+    },
+    "decision_tree": {
+      "parameters": {
+        "maxDepth": 8,
+        "minInstancesPerNode": 5
+      },
+      "threshold": 0.44,
+      "class_weighting": "inverse_frequency_from_training_only",
+      "scale_numeric_features": false,
+      "training_seconds": 0.7463621669448912,
+      "tuning_seconds": 1.549057916738093,
+      "validation": {
+        "accuracy": 0.5136842105263157,
+        "macro_f1": 0.46741900254823443,
+        "weighted_f1": 0.5275637729197402,
+        "balanced_accuracy": 0.4697118456527498,
+        "per_class": {
+          "0": {
+            "precision": 0.27586206896551724,
+            "recall": 0.35494880546075086,
+            "f1": 0.31044776119402984,
+            "support": 293
+          },
+          "1": {
+            "precision": 0.6701570680628273,
+            "recall": 0.5844748858447488,
+            "f1": 0.624390243902439,
+            "support": 657
+          }
+        },
+        "confusion_matrix": {
+          "tn": 104,
+          "fp": 189,
+          "fn": 273,
+          "tp": 384
+        },
+        "prediction_counts": {
+          "0": 377,
+          "1": 573
+        },
+        "roc_auc": 0.43715357322819104,
+        "pr_auc": 0.6490686192319137
+      },
+      "test": {
+        "accuracy": 0.4673684210526316,
+        "macro_f1": 0.4198060146092532,
+        "weighted_f1": 0.5061877380762714,
+        "balanced_accuracy": 0.43651892890120036,
+        "per_class": {
+          "0": {
+            "precision": 0.19111111111111112,
+            "recall": 0.37719298245614036,
+            "f1": 0.2536873156342183,
+            "support": 228
+          },
+          "1": {
+            "precision": 0.716,
+            "recall": 0.49584487534626037,
+            "f1": 0.5859247135842881,
+            "support": 722
+          }
+        },
+        "confusion_matrix": {
+          "tn": 86,
+          "fp": 142,
+          "fn": 364,
+          "tp": 358
+        },
+        "prediction_counts": {
+          "0": 450,
+          "1": 500
+        },
+        "roc_auc": 0.43064161442387133,
+        "pr_auc": 0.7453311572516664
+      },
+      "feature_importance": [
+        {
+          "feature": "prior_7d_avg_temperature_c",
+          "importance": 0.1252158785280702
+        },
+        {
+          "feature": "prior_7d_anomaly_rate",
+          "importance": 0.12190442106938223
+        },
+        {
+          "feature": "prior_7d_temperature_stddev",
+          "importance": 0.10564019299973802
+        },
+        {
+          "feature": "max_vibration_mm_s",
+          "importance": 0.08425563873996496
+        },
+        {
+          "feature": "avg_vibration_mm_s",
+          "importance": 0.06281138878555614
+        },
+        {
+          "feature": "vibration_deviation_7d",
+          "importance": 0.06116814913097154
+        },
+        {
+          "feature": "anomaly_rate",
+          "importance": 0.05528446349978955
+        },
+        {
+          "feature": "machine_age_years",
+          "importance": 0.049455782533404845
+        },
+        {
+          "feature": "avg_load_pct",
+          "importance": 0.04635429141776783
+        },
+        {
+          "feature": "temperature_stddev",
+          "importance": 0.0456534268541997
+        },
+        {
+          "feature": "prior_7d_avg_vibration_mm_s",
+          "importance": 0.038029828184164935
+        },
+        {
+          "feature": "temperature_change_1d",
+          "importance": 0.03718507250401548
+        },
+        {
+          "feature": "anomaly_rate_deviation_7d",
+          "importance": 0.03370319563516363
+        },
+        {
+          "feature": "temperature_deviation_7d",
+          "importance": 0.028990951850972023
+        },
+        {
+          "feature": "avg_temperature_c",
+          "importance": 0.022785579075255056
+        }
+      ],
+      "candidates": [
+        {
+          "parameters": {
+            "maxDepth": 4,
+            "minInstancesPerNode": 20
+          },
+          "threshold": 0.5,
+          "macro_f1": 0.4358113345049936,
+          "balanced_accuracy": 0.5069869766910301,
+          "training_seconds": 0.8026957497932017
+        },
+        {
+          "parameters": {
+            "maxDepth": 8,
+            "minInstancesPerNode": 5
+          },
+          "threshold": 0.44,
+          "macro_f1": 0.46741900254823443,
+          "balanced_accuracy": 0.4697118456527498,
+          "training_seconds": 0.7463621669448912
+        }
+      ]
+    },
+    "random_forest": {
+      "parameters": {
+        "numTrees": 30,
+        "maxDepth": 5
+      },
+      "threshold": 0.58,
+      "class_weighting": "inverse_frequency_from_training_only",
+      "scale_numeric_features": false,
+      "training_seconds": 0.7527028750628233,
+      "tuning_seconds": 0.7527028750628233,
+      "validation": {
+        "accuracy": 0.608421052631579,
+        "macro_f1": 0.5086999316016882,
+        "weighted_f1": 0.5935094831317822,
+        "balanced_accuracy": 0.510786956950873,
+        "per_class": {
+          "0": {
+            "precision": 0.32751091703056767,
+            "recall": 0.25597269624573377,
+            "f1": 0.28735632183908044,
+            "support": 293
+          },
+          "1": {
+            "precision": 0.6976421636615812,
+            "recall": 0.7656012176560122,
+            "f1": 0.7300435413642962,
+            "support": 657
+          }
+        },
+        "confusion_matrix": {
+          "tn": 75,
+          "fp": 218,
+          "fn": 154,
+          "tp": 503
+        },
+        "prediction_counts": {
+          "0": 229,
+          "1": 721
+        },
+        "roc_auc": 0.49841819003537646,
+        "pr_auc": 0.7016525310176549
+      },
+      "test": {
+        "accuracy": 0.68,
+        "macro_f1": 0.4980150039282759,
+        "weighted_f1": 0.6551838641720376,
+        "balanced_accuracy": 0.5028855032317636,
+        "per_class": {
+          "0": {
+            "precision": 0.24666666666666667,
+            "recall": 0.16228070175438597,
+            "f1": 0.19576719576719578,
+            "support": 228
+          },
+          "1": {
+            "precision": 0.76125,
+            "recall": 0.8434903047091413,
+            "f1": 0.800262812089356,
+            "support": 722
+          }
+        },
+        "confusion_matrix": {
+          "tn": 37,
+          "fp": 191,
+          "fn": 113,
+          "tp": 609
+        },
+        "prediction_counts": {
+          "0": 150,
+          "1": 800
+        },
+        "roc_auc": 0.47229005685960057,
+        "pr_auc": 0.7454661913660694
+      },
+      "feature_importance": [
+        {
+          "feature": "prior_7d_avg_temperature_c",
+          "importance": 0.15503819483092426
+        },
+        {
+          "feature": "avg_vibration_mm_s",
+          "importance": 0.06352326567476185
+        },
+        {
+          "feature": "prior_7d_avg_vibration_mm_s",
+          "importance": 0.0626591465582861
+        },
+        {
+          "feature": "anomaly_rate_deviation_7d",
+          "importance": 0.06212579233755961
+        },
+        {
+          "feature": "avg_power_kw",
+          "importance": 0.061459739716378435
+        },
+        {
+          "feature": "avg_load_pct",
+          "importance": 0.05583778050356356
+        },
+        {
+          "feature": "prior_7d_anomaly_rate",
+          "importance": 0.05332995773170555
+        },
+        {
+          "feature": "max_vibration_mm_s",
+          "importance": 0.05179795419608058
+        },
+        {
+          "feature": "prior_7d_temperature_stddev",
+          "importance": 0.04746295492750083
+        },
+        {
+          "feature": "temperature_stddev",
+          "importance": 0.04681171670700605
+        },
+        {
+          "feature": "avg_temperature_c",
+          "importance": 0.04656392277933849
+        },
+        {
+          "feature": "temperature_change_1d",
+          "importance": 0.04152737868378765
+        },
+        {
+          "feature": "vibration_change_1d",
+          "importance": 0.03889491121834971
+        },
+        {
+          "feature": "anomaly_rate",
+          "importance": 0.0356701155679129
+        },
+        {
+          "feature": "vibration_deviation_7d",
+          "importance": 0.03261436071806307
+        }
+      ],
+      "candidates": [
+        {
+          "parameters": {
+            "numTrees": 30,
+            "maxDepth": 5
+          },
+          "threshold": 0.58,
+          "macro_f1": 0.5086999316016882,
+          "balanced_accuracy": 0.510786956950873,
+          "training_seconds": 0.7527028750628233
+        }
+      ]
+    },
+    "gradient_boosted_trees": {
+      "parameters": {
+        "maxIter": 20,
+        "maxDepth": 3
+      },
+      "threshold": 0.56,
+      "class_weighting": "inverse_frequency_from_training_only",
+      "scale_numeric_features": false,
+      "training_seconds": 2.824086458887905,
+      "tuning_seconds": 2.824086458887905,
+      "validation": {
+        "accuracy": 0.5368421052631579,
+        "macro_f1": 0.4758778419207447,
+        "weighted_f1": 0.5443685575276535,
+        "balanced_accuracy": 0.47605466984587097,
+        "per_class": {
+          "0": {
+            "precision": 0.27927927927927926,
+            "recall": 0.3174061433447099,
+            "f1": 0.2971246006389776,
+            "support": 293
+          },
+          "1": {
+            "precision": 0.6758508914100486,
+            "recall": 0.634703196347032,
+            "f1": 0.6546310832025118,
+            "support": 657
+          }
+        },
+        "confusion_matrix": {
+          "tn": 93,
+          "fp": 200,
+          "fn": 240,
+          "tp": 417
+        },
+        "prediction_counts": {
+          "0": 333,
+          "1": 617
+        },
+        "roc_auc": 0.46135344751455837,
+        "pr_auc": 0.689020910844308
+      },
+      "test": {
+        "accuracy": 0.5831578947368421,
+        "macro_f1": 0.4965634635149024,
+        "weighted_f1": 0.6051361767728675,
+        "balanced_accuracy": 0.5036934441366574,
+        "per_class": {
+          "0": {
+            "precision": 0.24390243902439024,
+            "recall": 0.3508771929824561,
+            "f1": 0.28776978417266186,
+            "support": 228
+          },
+          "1": {
+            "precision": 0.7620578778135049,
+            "recall": 0.6565096952908587,
+            "f1": 0.7053571428571429,
+            "support": 722
+          }
+        },
+        "confusion_matrix": {
+          "tn": 80,
+          "fp": 148,
+          "fn": 248,
+          "tp": 474
+        },
+        "prediction_counts": {
+          "0": 328,
+          "1": 622
+        },
+        "roc_auc": 0.48232249599066923,
+        "pr_auc": 0.7463975287920877
+      },
+      "feature_importance": [
+        {
+          "feature": "vibration_deviation_7d",
+          "importance": 0.11187634664848418
+        },
+        {
+          "feature": "vibration_change_1d",
+          "importance": 0.08077876753890226
+        },
+        {
+          "feature": "prior_7d_temperature_stddev",
+          "importance": 0.07584709742619809
+        },
+        {
+          "feature": "anomaly_rate_deviation_7d",
+          "importance": 0.0659619265956737
+        },
+        {
+          "feature": "machine_age_years",
+          "importance": 0.06475168622114268
+        },
+        {
+          "feature": "temperature_change_1d",
+          "importance": 0.06046132401981478
+        },
+        {
+          "feature": "prior_7d_avg_temperature_c",
+          "importance": 0.059545674620312156
+        },
+        {
+          "feature": "avg_temperature_c",
+          "importance": 0.058624991113620684
+        },
+        {
+          "feature": "avg_load_pct",
+          "importance": 0.058339360657049456
+        },
+        {
+          "feature": "avg_power_kw",
+          "importance": 0.056286485964120066
+        },
+        {
+          "feature": "max_vibration_mm_s",
+          "importance": 0.047772994328825126
+        },
+        {
+          "feature": "temperature_stddev",
+          "importance": 0.04583213909190847
+        },
+        {
+          "feature": "criticality",
+          "importance": 0.039476746539555706
+        },
+        {
+          "feature": "prior_7d_anomaly_rate",
+          "importance": 0.03713182859432597
+        },
+        {
+          "feature": "temperature_deviation_7d",
+          "importance": 0.030808529715120297
+        }
+      ],
+      "candidates": [
+        {
+          "parameters": {
+            "maxIter": 20,
+            "maxDepth": 3
+          },
+          "threshold": 0.56,
+          "macro_f1": 0.4758778419207447,
+          "balanced_accuracy": 0.47605466984587097,
+          "training_seconds": 2.824086458887905
+        }
+      ]
+    }
+  },
+  "selection_rule": "highest validation macro-F1, then balanced accuracy; both classes must be predicted",
+  "selected_model": "logistic_regression",
+  "selected_threshold": 0.58,
+  "final_refit": {
+    "training_data": "train_plus_validation_after_model_and_threshold_lock",
+    "class_weights": {
+      "0": 1.1926605504587156,
+      "1": 0.8609271523178808
+    },
+    "training_seconds": 2.4494048762135208,
+    "test": {
+      "accuracy": 0.7231578947368421,
+      "macro_f1": 0.534274663311431,
+      "weighted_f1": 0.6885032853348245,
+      "balanced_accuracy": 0.5372807017543859,
+      "per_class": {
+        "0": {
+          "precision": 0.3504273504273504,
+          "recall": 0.17982456140350878,
+          "f1": 0.23768115942028983,
+          "support": 228
+        },
+        "1": {
+          "precision": 0.7755102040816326,
+          "recall": 0.8947368421052632,
+          "f1": 0.8308681672025723,
+          "support": 722
+        }
+      },
+      "confusion_matrix": {
+        "tn": 41,
+        "fp": 187,
+        "fn": 76,
+        "tp": 646
+      },
+      "prediction_counts": {
+        "0": 117,
+        "1": 833
+      },
+      "roc_auc": 0.6323079166059195,
+      "pr_auc": 0.8545931686269873
+    }
+  },
+  "test_was_used_for_selection": false
+}

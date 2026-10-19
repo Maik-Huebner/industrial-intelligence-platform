@@ -13,7 +13,7 @@ Spark- und Full-Profil-Läufe sind getrennt, damit schnelle Änderungen nicht du
 
 ## Ausgeführter Abnahmestand vom 19. Oktober 2026
 
-- 12 schnelle Unit-/E2E-Tests bestanden, 4 Integrationstests in diesem Lauf abgewählt; Coverage 53 Prozent.
+- 17 schnelle Unit-/E2E-Tests bestanden, 5 markierte Tests in diesem Lauf abgewählt.
 - 4 Containerintegrationstests gegen PostgreSQL, MongoDB und Neo4j mit `EXPECTED_PROFILE=full` bestanden.
 - Airflow-DAG-Import ohne Fehler; `industrial_etl` mit allen zehn Tasks gelistet.
 - Vollständiger Airflow-DAG mit einer Million Messungen erfolgreich.

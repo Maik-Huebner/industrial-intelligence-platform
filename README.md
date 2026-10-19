@@ -119,25 +119,26 @@ make full                 # 1.000.000 Messungen
 
 ## ML-Methodik
 
-Der Feature-Datensatz enthält tägliche Aggregationen je Maschine. Der chronologische Holdout verhindert, dass spätere Tage in das Training gelangen. Klassifikation und Regression werden getrennt bewertet; KMeans beschreibt mathematische Gruppen, deren technische Bedeutung erst anhand der Profilmittelwerte interpretiert wird. Echte Kennzahlen werden in `reports/ml_report.json` geschrieben. Eine fehlende Datei bedeutet ausdrücklich, dass der MLlib-Lauf noch nicht erfolgreich ausgeführt wurde.
+Der Feature-Datensatz enthält tägliche Aggregationen je Maschine. Für die Klassifikation trennt ein chronologischer, um den eintägigen Target-Horizont bereinigter 60/20/20-Split Training, Validierung und Test. Fünf Modelle werden mit klassenweisen Metriken, Macro-F1, Balanced Accuracy, PR-AUC, ROC-AUC und Confusion Matrix verglichen. Regression und KMeans bleiben methodisch unverändert. Echte Kennzahlen stehen in `reports/ml_report.json` und `reports/classification_benchmark.json`.
 
 ### Gemessene Ergebnisse des Full-Laufs
 
 | Modell | Kennzahl | Wert |
 |---|---|---:|
-| Logistische Regression | Accuracy / F1 | 0,760 / 0,656 |
-| Entscheidungsbaum | Accuracy / F1 | 0,742 / 0,663 |
+| Majority-Baseline | Accuracy / Macro-F1 / Balanced Accuracy | 0,760 / 0,432 / 0,500 |
+| Finale logistische Regression | Accuracy / Macro-F1 / Balanced Accuracy | 0,723 / 0,534 / 0,537 |
+| Finale logistische Regression | PR-AUC / ROC-AUC | 0,855 / 0,632 |
 | Lineare Regression | RMSE / MAE | 0,521 °C / 0,443 °C |
 | Mittelwert-Baseline | RMSE | 3,536 °C |
 | KMeans, k=3 | Silhouette | 0,362 |
 
-Die Klassifikations-Accuracy ist irreführend, wenn sie allein gelesen wird: Die logistische Regression sagte im Test alle 1.000 Fälle als positiv voraus (760 richtig, 240 falsch). Das Projekt dokumentiert diese Schwäche bewusst und behauptet keine reale Wartungsgüte.
+Die frühere Klassifikation sagte alle 1.000 Testfälle positiv voraus. Das neue Modell erkennt im unabhängigen Test beide Klassen (41 TN, 187 FP, 76 FN, 646 TP) und schlägt die Majority-Baseline bei Macro-F1 und Balanced Accuracy. Die Trennung bleibt schwach und synthetische Daten belegen keine reale Wartungsgüte. Der vollständige Vergleich steht im [Klassifikations-Benchmark](docs/ml/CLASSIFICATION_BENCHMARK.md).
 
 Technischer Full-DAG-Nachweis:
 
 ```text
 Messungen: 1.000.000  →  valide: 994.905  →  Quarantäne: 5.095
-Spark-Features: 4.950  →  PostgreSQL-Prognosen: 1.000
+Spark-Features: 4.950  →  neue Testprognosen: 950 (versioniert)
 MongoDB-Dokumente: 1.000.000  |  Neo4j: 270 Knoten / 400 Beziehungen
 Airflow industrial_etl: success
 ```
@@ -173,6 +174,7 @@ presentation/                 Zehn-Minuten-Präsentation und Demo-Unterlagen
 - [Airflow](docs/airflow/AIRFLOW.md)
 - [Spark](docs/spark/SPARK.md)
 - [MLlib](docs/ml/ML_REPORT_GUIDE.md)
+- [Klassifikations-Benchmark](docs/ml/CLASSIFICATION_BENCHMARK.md)
 - [Tests](docs/testing/TESTING.md)
 - [Betrieb](docs/operations/RUNBOOK.md)
 - [Unterrichtsabdeckung](docs/COURSE_COVERAGE.md)

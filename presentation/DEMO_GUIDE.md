@@ -26,6 +26,8 @@ Voraussetzung: `.env` aus `.env.example`, laufender Docker-Stack. Bei Portkonfli
    curl -s 'http://localhost:8000/predictions?risk=high' | python -m json.tool | head -40
    ```
 
+   Danach `reports/classification_benchmark.json` öffnen und die finale Confusion Matrix 41 / 187 / 76 / 646 zeigen.
+
 4. Airflow öffnen: `http://localhost:8080`, DAG `industrial_etl`. Zehn Tasks und letzten erfolgreichen Lauf zeigen.
 
 5. Optional Neo4j Browser öffnen und ausführen:
@@ -41,9 +43,10 @@ Voraussetzung: `.env` aus `.env.example`, laufender Docker-Stack. Bei Portkonfli
 Alle Zahlen sind echte, am 19. Oktober 2026 erzeugte Ausführungsergebnisse:
 
 1. `reports/execution_evidence.json` öffnen: kompakter, maschinenlesbarer Abnahmenachweis.
-2. `reports/airflow_latest.json` öffnen: Full-DAG `success`, 994.905 valide und 5.095 verworfene Messungen, 1.050 PostgreSQL-Schreibvorgänge, 200 synchronisierte Graph-Quellzeilen.
-3. `reports/ml_report.json` öffnen: chronologischer Holdout, echte Modellmetriken und Clusterprofile.
-4. `reports/latest_pipeline_run.json` öffnen: lokaler Full-Lauf in 14,862 Sekunden sowie Top-Risikomaschinen.
+2. `reports/airflow_latest.json` öffnen: Full-DAG `success`, 994.905 valide und 5.095 verworfene Messungen, 1.000 PostgreSQL-Schreibvorgänge (50 Tagesmetriken plus 950 neue Testprognosen), 200 synchronisierte Graph-Quellzeilen.
+3. `reports/classification_benchmark.json` öffnen: fünf Klassifikatoren, purged 60/20/20-Split, klassenweise Metriken und finale Confusion Matrix.
+4. `reports/ml_report.json` öffnen: Klassifikation, unveränderte Regression und Clusterprofile.
+5. `reports/latest_pipeline_run.json` öffnen: lokaler Full-Lauf in 14,862 Sekunden sowie Top-Risikomaschinen.
 
 Kernausgabe:
 
@@ -51,11 +54,11 @@ Kernausgabe:
 Generator      1.000.000 Sensormessungen
 Qualität         994.905 valide | 5.095 Quarantäne
 Spark              4.950 Tagesfeature-Zeilen
-PostgreSQL          1.000 ML-Prognosen
+MLlib                  950 neue Testprognosen
 MongoDB         1.000.000 Sensordokumente
 Neo4j                 270 Knoten | 400 Beziehungen
 Airflow            Full-DAG erfolgreich
-Tests              12 schnell + 4 Integration bestanden
+Tests              17 schnell + 4 Integration bestanden
 ```
 
 ## Wenn etwas schiefgeht
@@ -64,4 +67,3 @@ Tests              12 schnell + 4 Integration bestanden
 - Airflow noch nicht bereit: auf den Healthcheck warten und die Fallback-Dateien zeigen.
 - Spark-Demo zu lang: keinen Full-Lauf während des Vortrags starten. Den gespeicherten Nachweis zeigen und `small` nur bei genügend Zeit verwenden.
 - Keine Daten: `make pipeline PROFILE=small` liefert lokal eine schnelle, transparente Baseline; sie ist nicht das MLlib-Modell.
-

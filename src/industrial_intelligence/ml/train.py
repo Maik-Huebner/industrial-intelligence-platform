@@ -17,6 +17,8 @@ from pyspark.ml.functions import vector_to_array
 from pyspark.ml.regression import LinearRegression
 from pyspark.sql import SparkSession, functions as F
 
+from industrial_intelligence.ml.classification import run_classification_benchmark
+
 NUMERIC_FEATURES = [
     "avg_temperature_c",
     "temperature_stddev",
@@ -95,6 +97,7 @@ def main() -> None:
     parser.add_argument("--data-dir", default=os.getenv("IIP_DATA_DIR", "data"))
     args = parser.parse_args()
     spark = SparkSession.builder.appName("industrial-mllib-training").getOrCreate()
+    spark.sparkContext.setLogLevel("WARN")
     spark.conf.set("spark.sql.session.timeZone", "UTC")
     data_dir = Path(args.data_dir)
     try:
@@ -102,9 +105,18 @@ def main() -> None:
         train, test, cutoff = split_by_time(data)
         # The random split is retained as a course demonstration, not used for reported metrics.
         random_train, random_test = data.randomSplit([0.8, 0.2], seed=42)
-        classification, logistic_model, tree_model, class_predictions = classification_report(train, test)
+        classification, best_classifier, class_predictions = run_classification_benchmark(data)
+        project_root = data_dir.parent
+        reports_dir = project_root / "reports"
+        reports_dir.mkdir(exist_ok=True)
+        (reports_dir / "classification_benchmark.json").write_text(
+            json.dumps(classification, indent=2, default=str), encoding="utf-8"
+        )
+        print(f"classification benchmark complete: {classification['selected_model']}")
         regression, regression_model = regression_report(train, test)
+        print("regression evaluation complete")
         clustering, clustering_model = clustering_report(train)
+        print("clustering evaluation complete")
         class_balance = {str(row["risk_label"]): row["count"] for row in data.groupBy("risk_label").count().collect()}
         report = {
             "generated_at": datetime.now(UTC).isoformat(),
@@ -118,33 +130,34 @@ def main() -> None:
             "limitations": [
                 "All training data is synthetic and does not establish real-world maintenance performance.",
                 "The label uses simulated next-day outcomes and anomaly thresholds.",
+                "Pressure deviations cannot be evaluated because the current source schema has no pressure sensor.",
                 "Linear regression cannot model every nonlinear thermal relationship.",
                 "Cluster names require engineering interpretation after profile review.",
             ],
         }
-        project_root = data_dir.parent
-        reports_dir = project_root / "reports"
-        reports_dir.mkdir(exist_ok=True)
         (reports_dir / "ml_report.json").write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
         (
             class_predictions.select(
                 "machine_id",
                 F.col("metric_date").cast("string").alias("prediction_date"),
-                vector_to_array("probability")[1].alias("risk_probability"),
+                "risk_probability",
                 F.col("prediction").cast("int").alias("predicted_label"),
             )
-            .withColumn("model_name", F.lit("logistic_regression"))
-            .withColumn("model_version", F.lit("synthetic-v1"))
+            .withColumn("model_name", F.lit(classification["selected_model"]))
+            .withColumn("model_version", F.lit("synthetic-v2-classification-benchmark"))
             .coalesce(1)
             .write.mode("overwrite")
             .json(str(data_dir / "processed" / "ml_predictions_json"))
         )
         model_dir = project_root / "models"
         model_dir.mkdir(exist_ok=True)
-        logistic_model.write().overwrite().save(str(model_dir / "logistic_pipeline.model"))
-        tree_model.write().overwrite().save(str(model_dir / "decision_tree_pipeline.model"))
-        regression_model.write().overwrite().save(str(model_dir / "linear_regression_pipeline.model"))
-        clustering_model.write().overwrite().save(str(model_dir / "kmeans_pipeline.model"))
+        best_classifier.write().overwrite().save(str(model_dir / "classification_best_pipeline.model"))
+        regression_path = model_dir / "linear_regression_pipeline.model"
+        clustering_path = model_dir / "kmeans_pipeline.model"
+        if not regression_path.exists():
+            regression_model.write().save(str(regression_path))
+        if not clustering_path.exists():
+            clustering_model.write().save(str(clustering_path))
         print(json.dumps(report, indent=2, default=str))
     finally:
         spark.stop()

@@ -21,6 +21,8 @@ data/quarantine/*
 reports/*.json
 !reports/latest_pipeline_run.json
 !reports/ml_report.json
+!reports/classification_benchmark.json
+!reports/classification_data_audit.json
 !reports/execution_evidence.json
 !reports/airflow_latest.json
 models/*.model/

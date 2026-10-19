@@ -1,0 +1,123 @@
+{
+  "row_count": 4950,
+  "date_range": [
+    "2026-07-11",
+    "2026-10-17"
+  ],
+  "split": {
+    "strategy": "purged_chronological_60_20_20",
+    "target_horizon_days": 1,
+    "train": [
+      "2026-07-11",
+      "2026-09-07"
+    ],
+    "purge_after_train": "2026-09-08",
+    "validation": [
+      "2026-09-09",
+      "2026-09-27"
+    ],
+    "purge_after_validation": "2026-09-28",
+    "test": [
+      "2026-09-29",
+      "2026-10-17"
+    ],
+    "rationale": "Future prediction for already-known machines; one day is purged at each boundary because the label uses lead(1)."
+  },
+  "class_distribution": {
+    "train": {
+      "rows": 2950,
+      "classes": {
+        "0": 1342,
+        "1": 1608
+      }
+    },
+    "validation": {
+      "rows": 950,
+      "classes": {
+        "0": 293,
+        "1": 657
+      }
+    },
+    "test": {
+      "rows": 950,
+      "classes": {
+        "0": 228,
+        "1": 722
+      }
+    }
+  },
+  "target_component_counts": {
+    "next_day_failure": 174,
+    "next_day_anomaly_rate": 190,
+    "next_day_max_vibration": 2998,
+    "positive_union": 3059,
+    "next_day_max_vibration_only": 2726
+  },
+  "feature_target_pearson_correlations": {
+    "avg_temperature_c": 0.22757392455595535,
+    "temperature_stddev": 0.08254738459666289,
+    "avg_vibration_mm_s": 0.24022187101083478,
+    "max_vibration_mm_s": 0.09334303034024966,
+    "avg_power_kw": 0.11312351845526263,
+    "avg_load_pct": -0.02638044011322464,
+    "anomaly_rate": 0.15466119824412328,
+    "machine_age_years": -0.04779210365116606,
+    "criticality": 0.029988149758674816,
+    "maintenance_count": 0.015102808277362453,
+    "prior_7d_avg_temperature_c": 0.24528681452997086,
+    "prior_7d_temperature_stddev": 0.08581487812834389,
+    "prior_7d_avg_vibration_mm_s": 0.2454524306360349,
+    "prior_7d_anomaly_rate": 0.14874042046366895,
+    "temperature_change_1d": -0.0010585652480457441,
+    "vibration_change_1d": -0.0007896095023661651,
+    "temperature_deviation_7d": 0.015064274588222678,
+    "vibration_deviation_7d": 0.029946980134112303,
+    "anomaly_rate_deviation_7d": 0.05798352388988482,
+    "day_of_week_sin": -0.001348551613064992,
+    "day_of_week_cos": -0.010096969968084376,
+    "failure_count": 0.0008262856557553483
+  },
+  "monthly_class_distribution": [
+    {
+      "month": "2026-07",
+      "label": 0,
+      "count": 556
+    },
+    {
+      "month": "2026-07",
+      "label": 1,
+      "count": 494
+    },
+    {
+      "month": "2026-08",
+      "label": 0,
+      "count": 658
+    },
+    {
+      "month": "2026-08",
+      "label": 1,
+      "count": 892
+    },
+    {
+      "month": "2026-09",
+      "label": 0,
+      "count": 475
+    },
+    {
+      "month": "2026-09",
+      "label": 1,
+      "count": 1025
+    },
+    {
+      "month": "2026-10",
+      "label": 0,
+      "count": 202
+    },
+    {
+      "month": "2026-10",
+      "label": 1,
+      "count": 648
+    }
+  ],
+  "pressure_feature_available": false
+}
