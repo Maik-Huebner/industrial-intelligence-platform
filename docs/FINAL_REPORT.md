@@ -64,17 +64,17 @@ Das Ziel für Klassifikation und Regression wird ausschließlich aus dem Folgeta
 
 ## 7. MLlib-Modelle und echte Kennzahlen
 
-Die Klassifikation verwendet einen purged chronologischen 60/20/20-Split: 2.950 Trainings-, 950 Validierungs- und 950 Testzeilen; der 8. und 28. September sind wegen des eintägigen Label-Horizonts ausgelassen. Parameter, Klassengewichte und Schwellenwerte stammen ausschließlich aus Training und Validierung. Der Test wurde nicht für die Auswahl verwendet. Regression und KMeans behalten den bisherigen 80/20-Pfad unverändert.
+Die Klassifikation verwendet einen purged chronologischen 60/20/20-Split: 2.950 Trainings-, 950 Validierungs- und 950 Testzeilen; der 8. und 28. September sind wegen des eintägigen Label-Horizonts ausgelassen. Parameter, Klassengewichte und Schwellenwerte stammen ausschließlich aus Training und Validierung. Der Test wurde nicht für die Auswahl verwendet. Regression und KMeans nutzen einen purged chronologischen 80/20-Pfad mit 3.900 Trainings-, 50 ausgelassenen Grenz- und 1.000 Testzeilen.
 
 | Aufgabe | Modell | Kennzahl | Ergebnis |
 |---|---|---|---:|
 | Klassifikation | Majority-Baseline | Accuracy / Macro-F1 / Balanced Accuracy | 0,760 / 0,432 / 0,500 |
 | Klassifikation | Finale logistische Regression | Accuracy / Macro-F1 / Balanced Accuracy | 0,723 / 0,534 / 0,537 |
 | Klassifikation | Finale logistische Regression | PR-AUC / ROC-AUC | 0,855 / 0,632 |
-| Regression | Lineare Regression | RMSE | 0,521 °C |
-| Regression | Lineare Regression | MAE | 0,443 °C |
-| Regression | Mittelwert-Baseline | RMSE | 3,536 °C |
-| Clustering | KMeans, k=3 | Silhouette | 0,362 |
+| Regression | Lineare Regression | RMSE | 0,514 °C |
+| Regression | Lineare Regression | MAE | 0,439 °C |
+| Regression | Mittelwert-Baseline | RMSE | 3,557 °C |
+| Clustering | KMeans, k=3 | Silhouette | 0,554 |
 
 ### Ehrliche Interpretation
 
@@ -82,14 +82,14 @@ Die frühere logistische Regression klassifizierte alle 1.000 Testfälle positiv
 
 Die Trennung ist messbar, aber nicht stark: Recall für Klasse 0 beträgt nur 0,180. 2.998 von 3.059 positiven Labels erfüllen den synthetischen Folgetag-Vibrationsgrenzwert; 2.726 entstehen ausschließlich daraus. Zusätzlich steigt der Positivanteil zeitlich von 54,51 Prozent im Training auf 76,00 Prozent im Test. Diese Label-Dominanz und der Drift erklären das frühere Ein-Klassen-Verhalten. Druckmerkmale konnten nicht untersucht werden, weil der Quellgenerator keinen Drucksensor enthält. Der vollständige Vergleich mit allen klassenweisen Metriken, Laufzeiten, Feature-Abtrag und Generator-Empfehlungen steht in `docs/ml/CLASSIFICATION_BENCHMARK.md`.
 
-Die Regression schlägt die Mittelwert-Baseline deutlich. Das KMeans-Ergebnis zeigt einen kleinen Anomalie-/Verschleißcluster mit 85 Zeilen sowie zwei größere Lastzustände; eine technische Benennung benötigt weiterhin Domänenvalidierung.
+Die Regression schlägt die Mittelwert-Baseline deutlich. Das KMeans-Ergebnis zeigt einen kleinen Anomalie-/Verschleißcluster mit 80 Zeilen sowie zwei größere Betriebsgruppen; eine technische Benennung benötigt weiterhin Domänenvalidierung.
 
 Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sind synthetisch.
 
 ## 8. Testergebnisse
 
 - Gesamtsuite: 32 Tests bestanden, eine Deprecation-Warnung.
-- Spark-Vertragstest: auf dem Host ohne PySpark explizit übersprungen; der identische Transformationspfad lief im Full-DAG erfolgreich.
+- Spark-Vertragstests: auf dem Host ohne PySpark explizit übersprungen; beide Verträge liefen im identischen Spark-3.5.3-Container erfolgreich.
 - Containerintegration: 4 Tests gegen die laufenden Dienste und das Full-Profil bestanden.
 - Airflow: keine Importfehler; DAG gelistet; Full-DAG erfolgreich.
 - Docker Compose: Konfiguration validiert; Images für App, Spark-Submit und Airflow gebaut.

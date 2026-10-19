@@ -14,7 +14,7 @@ Fester Seed, deterministische IDs und Zeitverläufe, versionierte Abhängigkeite
 
 ## 4. Wie verhindert die Pipeline Data Leakage?
 
-Merkmale entstehen pro Maschine und Tag. Rückwärtsgerichtete Fenster enden am Vortag. Labels und Regressionsziel werden mit `lead` aus dem Folgetag gebildet. Der Klassifikationssplit ist chronologisch und lässt an beiden Grenzen je einen Tag aus, damit der eintägige Target-Horizont nicht über eine Grenze reicht.
+Merkmale entstehen pro Maschine und Tag. Rückwärtsgerichtete Fenster enden am Vortag. Labels und Regressionsziel werden mit `lead` aus dem Folgetag gebildet. Klassifikation und Regression sind chronologisch getrennt und lassen an den Grenzen jeweils einen Tag aus, damit der eintägige Target-Horizont nicht über eine Grenze reicht.
 
 ## 5. Warum war 76 Prozent Accuracy hier schlecht?
 
@@ -32,9 +32,9 @@ Kleine XComs, Dateien und Datenbanken für große Payloads, Retries, Timeouts, m
 
 Eine Million Zeilen rechtfertigen Spark wirtschaftlich nicht automatisch. Hier demonstriert die Größe denselben verteilbaren Codepfad für DataFrames, SQL, Joins, Fenster, Aggregationen und Parquet. Die Grenze wird transparent dokumentiert.
 
-## 9. Was bedeutet die KMeans-Silhouette 0,362?
+## 9. Was bedeutet die KMeans-Silhouette 0,554?
 
-Die Cluster sind nur mäßig getrennt. Ein kleiner Cluster von 85 Zeilen hat sehr hohe Anomalierate und Vibration; zwei große Cluster unterscheiden vor allem Last und Temperatur. Die Namen benötigen technische Validierung.
+Die Cluster sind im verwendeten synthetischen Merkmalsraum erkennbar getrennt. Ein kleiner Cluster von 80 Zeilen hat sehr hohe Anomalierate und Vibration; die größeren Gruppen unterscheiden zusätzlich Wartungsvorkommen. Die Namen benötigen weiterhin technische Validierung.
 
 ## 10. Was fehlt für Produktion?
 

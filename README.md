@@ -131,7 +131,7 @@ Listenendpunkte sind begrenzt und paginiert. `X-Total-Count`, `X-Limit` und `X-O
 
 ## ML-Methodik
 
-Der Feature-Datensatz enthält tägliche Aggregationen je Maschine. Für die Klassifikation trennt ein chronologischer, um den eintägigen Target-Horizont bereinigter 60/20/20-Split Training, Validierung und Test. Fünf Modelle werden mit klassenweisen Metriken, Macro-F1, Balanced Accuracy, PR-AUC, ROC-AUC und Confusion Matrix verglichen. Regression und KMeans bleiben methodisch unverändert. Echte Kennzahlen stehen in `reports/ml_report.json` und `reports/classification_benchmark.json`.
+Der Feature-Datensatz enthält tägliche Aggregationen je Maschine. Für die Klassifikation trennt ein chronologischer, um den eintägigen Target-Horizont bereinigter 60/20/20-Split Training, Validierung und Test. Fünf Modelle werden mit klassenweisen Metriken, Macro-F1, Balanced Accuracy, PR-AUC, ROC-AUC und Confusion Matrix verglichen. Regression und KMeans verwenden einen ebenfalls um einen Tag bereinigten chronologischen 80/20-Pfad. Echte Kennzahlen stehen in `reports/ml_report.json` und `reports/classification_benchmark.json`.
 
 ### Gemessene Ergebnisse des Full-Laufs
 
@@ -140,9 +140,9 @@ Der Feature-Datensatz enthält tägliche Aggregationen je Maschine. Für die Kla
 | Majority-Baseline | Accuracy / Macro-F1 / Balanced Accuracy | 0,760 / 0,432 / 0,500 |
 | Finale logistische Regression | Accuracy / Macro-F1 / Balanced Accuracy | 0,723 / 0,534 / 0,537 |
 | Finale logistische Regression | PR-AUC / ROC-AUC | 0,855 / 0,632 |
-| Lineare Regression | RMSE / MAE | 0,521 °C / 0,443 °C |
-| Mittelwert-Baseline | RMSE | 3,536 °C |
-| KMeans, k=3 | Silhouette | 0,362 |
+| Lineare Regression | RMSE / MAE | 0,514 °C / 0,439 °C |
+| Mittelwert-Baseline | RMSE | 3,557 °C |
+| KMeans, k=3 | Silhouette | 0,554 |
 
 Die frühere Klassifikation sagte alle 1.000 Testfälle positiv voraus. Das neue Modell erkennt im unabhängigen Test beide Klassen (41 TN, 187 FP, 76 FN, 646 TP) und schlägt die Majority-Baseline bei Macro-F1 und Balanced Accuracy. Die Trennung bleibt schwach und synthetische Daten belegen keine reale Wartungsgüte. Der vollständige Vergleich steht im [Klassifikations-Benchmark](docs/ml/CLASSIFICATION_BENCHMARK.md).
 

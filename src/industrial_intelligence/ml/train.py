@@ -9,11 +9,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from pyspark.ml import Pipeline
-from pyspark.ml.classification import DecisionTreeClassifier, LogisticRegression
 from pyspark.ml.clustering import KMeans
-from pyspark.ml.evaluation import ClusteringEvaluator, MulticlassClassificationEvaluator, RegressionEvaluator
-from pyspark.ml.feature import StandardScaler, StringIndexer, VectorAssembler
-from pyspark.ml.functions import vector_to_array
+from pyspark.ml.evaluation import ClusteringEvaluator, RegressionEvaluator
+from pyspark.ml.feature import StandardScaler, VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.sql import SparkSession, functions as F
 
@@ -33,37 +31,22 @@ NUMERIC_FEATURES = [
 ]
 
 
-def split_by_time(data: object) -> tuple[object, object, str]:
+def split_by_time(data: object) -> tuple[object, object, dict[str, object]]:
+    """Create an 80/20 holdout with a one-day purge for lead(1) targets."""
     dates = [row[0] for row in data.select("metric_date").distinct().orderBy("metric_date").collect()]
-    cutoff = dates[max(1, int(len(dates) * 0.8)) - 1]
-    return data.filter(F.col("metric_date") <= cutoff), data.filter(F.col("metric_date") > cutoff), str(cutoff)
-
-
-def classification_report(train: object, test: object) -> tuple[dict[str, object], object, object, object]:
-    indexer = StringIndexer(inputCol="machine_type", outputCol="machine_type_index", handleInvalid="keep")
-    assembler = VectorAssembler(inputCols=NUMERIC_FEATURES + ["machine_type_index"], outputCol="unscaled_features", handleInvalid="skip")
-    scaler = StandardScaler(inputCol="unscaled_features", outputCol="features", withStd=True, withMean=True)
-    logistic = Pipeline(stages=[indexer, assembler, scaler, LogisticRegression(labelCol="risk_label", maxIter=80, regParam=0.05)])
-    tree = Pipeline(stages=[indexer, assembler, DecisionTreeClassifier(labelCol="risk_label", featuresCol="unscaled_features", maxDepth=6, seed=42)])
-    logistic_model = logistic.fit(train)
-    tree_model = tree.fit(train)
-    predictions = logistic_model.transform(test)
-    tree_predictions = tree_model.transform(test)
-    metrics = {}
-    for metric_name, evaluator_name in (
-        ("accuracy", "accuracy"),
-        ("precision", "weightedPrecision"),
-        ("recall", "weightedRecall"),
-        ("f1", "f1"),
-    ):
-        evaluator = MulticlassClassificationEvaluator(labelCol="risk_label", predictionCol="prediction", metricName=evaluator_name)
-        metrics[metric_name] = evaluator.evaluate(predictions)
-        metrics[f"decision_tree_{metric_name}"] = evaluator.evaluate(tree_predictions)
-    confusion = [
-        {"actual": row["risk_label"], "predicted": row["prediction"], "count": row["count"]}
-        for row in predictions.groupBy("risk_label", "prediction").count().orderBy("risk_label", "prediction").collect()
-    ]
-    return {"metrics": metrics, "confusion_matrix": confusion}, logistic_model, tree_model, predictions
+    if len(dates) < 3:
+        raise ValueError("At least three feature dates are required for a purged time split")
+    purge_index = min(max(1, int(len(dates) * 0.8) - 1), len(dates) - 2)
+    purge_date = dates[purge_index]
+    train = data.filter(F.col("metric_date") < purge_date)
+    test = data.filter(F.col("metric_date") > purge_date)
+    metadata = {
+        "strategy": "purged_chronological_80_20",
+        "purge_date": str(purge_date),
+        "target_horizon_days": 1,
+        "rationale": "The lead(1) regression target must not cross the train/test boundary.",
+    }
+    return train, test, metadata
 
 
 def regression_report(train: object, test: object) -> tuple[dict[str, float], object]:
@@ -102,7 +85,7 @@ def main() -> None:
     data_dir = Path(args.data_dir)
     try:
         data = spark.read.parquet(str(data_dir / "processed" / "spark_features.parquet")).cache()
-        train, test, cutoff = split_by_time(data)
+        train, test, regression_split = split_by_time(data)
         # The random split is retained as a course demonstration, not used for reported metrics.
         random_train, random_test = data.randomSplit([0.8, 0.2], seed=42)
         classification, best_classifier, class_predictions = run_classification_benchmark(data)
@@ -120,7 +103,11 @@ def main() -> None:
         class_balance = {str(row["risk_label"]): row["count"] for row in data.groupBy("risk_label").count().collect()}
         report = {
             "generated_at": datetime.now(UTC).isoformat(),
-            "validation": {"strategy": "chronological_holdout", "cutoff": cutoff, "random_split_demonstration": [random_train.count(), random_test.count()]},
+            "validation": {
+                "regression_and_clustering": regression_split,
+                "random_split_demonstration": [random_train.count(), random_test.count()],
+                "random_split_used_for_metrics": False,
+            },
             "counts": {"all": data.count(), "train": train.count(), "test": test.count()},
             "features": NUMERIC_FEATURES + ["machine_type via StringIndexer for classification"],
             "class_balance": class_balance,
@@ -152,12 +139,8 @@ def main() -> None:
         model_dir = project_root / "models"
         model_dir.mkdir(exist_ok=True)
         best_classifier.write().overwrite().save(str(model_dir / "classification_best_pipeline.model"))
-        regression_path = model_dir / "linear_regression_pipeline.model"
-        clustering_path = model_dir / "kmeans_pipeline.model"
-        if not regression_path.exists():
-            regression_model.write().save(str(regression_path))
-        if not clustering_path.exists():
-            clustering_model.write().save(str(clustering_path))
+        regression_model.write().overwrite().save(str(model_dir / "linear_regression_pipeline.model"))
+        clustering_model.write().overwrite().save(str(model_dir / "kmeans_pipeline.model"))
         print(json.dumps(report, indent=2, default=str))
     finally:
         spark.stop()

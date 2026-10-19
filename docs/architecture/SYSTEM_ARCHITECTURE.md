@@ -12,7 +12,7 @@ Die Plattform ist eine lokal containerisierte Batch-Architektur: Airflow orchest
 | MongoDB 7.0.14 | aktive verschachtelte Sensorquelle und Snapshot-Metadaten | 1.000.000 Dokumente, eindeutige IDs |
 | Python-Qualität | Rohdatenvertrag, normalisierte CSV, Quarantäne | 994.905 gültig, 5.095 tolerierte Defekte |
 | Spark 3.5.3 | Filterung, Joins, SQL, Windows, Aggregation, Parquet | 4.950 Featurezeilen für 50 Maschinen |
-| Spark MLlib | fünf Klassifikatoren, Regression und KMeans | bestehende Modelle und Benchmarks unverändert |
+| Spark MLlib | fünf Klassifikatoren, Regression und KMeans | purged Splits, gemessene Benchmarks, überschreibbare Modellartefakte |
 | PostgreSQL 16.4 | Stammdaten, Events, Tagesmetriken, Modellversionen, Läufe | direkte Serving-Quelle der FastAPI |
 | Neo4j 5.23 | Maschinen, Komponenten und geteilte Utilities | direkte Serving-Quelle für Abhängigkeiten |
 | Airflow 2.10.2 | 13 Tasks, Retries, Timeouts, zwei frühe Gates, finale Konsistenz | DAG importierbar, Reihenfolge verifiziert |

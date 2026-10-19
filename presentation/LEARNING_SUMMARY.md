@@ -24,11 +24,11 @@ Die Industrial Intelligence Platform zeigt, wie heterogene Industriedaten reprod
 - 4.950 Spark-Tagesfeatures
 - 50 Maschinen, fünf Linien
 - 1.950 gespeicherte ML-Prognosen über zwei Modellversionen
-- Regression: RMSE 0,521 °C gegenüber Baseline 3,536 °C
-- KMeans: Silhouette 0,362
+- Regression: RMSE 0,514 °C gegenüber Baseline 3,557 °C
+- KMeans: Silhouette 0,554
 - Klassifikation final: Macro-F1 0,534 statt 0,432; Balanced Accuracy 0,537 statt 0,500
 - Confusion Matrix final: 41 TN, 187 FP, 76 FN, 646 TP
-- 32 automatisierte Tests bestanden; ein Host-PySpark-Test transparent übersprungen
+- 32 automatisierte Host-/Integrations-/E2E-Tests bestanden; zwei Spark-Verträge im Container bestanden
 
 ## Drei ehrliche Grenzen
 

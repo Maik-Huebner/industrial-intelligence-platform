@@ -45,7 +45,7 @@ Alle Zahlen sind echte, am 19. Oktober 2026 erzeugte Ausführungsergebnisse:
 1. `reports/execution_evidence.json` öffnen: kompakter, maschinenlesbarer Abnahmenachweis.
 2. `reports/airflow_latest.json` öffnen: Full-DAG `success`, 994.905 valide und 5.095 verworfene Messungen, 1.000 PostgreSQL-Schreibvorgänge (50 Tagesmetriken plus 950 neue Testprognosen), 200 synchronisierte Graph-Quellzeilen.
 3. `reports/classification_benchmark.json` öffnen: fünf Klassifikatoren, purged 60/20/20-Split, klassenweise Metriken und finale Confusion Matrix.
-4. `reports/ml_report.json` öffnen: Klassifikation, unveränderte Regression und Clusterprofile.
+4. `reports/ml_report.json` öffnen: Klassifikation, purged Regression und Clusterprofile.
 5. `reports/latest_pipeline_run.json` öffnen: lokaler Full-Lauf in 14,862 Sekunden sowie Top-Risikomaschinen.
 
 Kernausgabe:

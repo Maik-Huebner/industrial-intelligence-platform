@@ -32,7 +32,7 @@ Zielzeit: etwa 9:30 Minuten. Die Abschnitte entsprechen den zehn Folien der Powe
 
 ## Folie 8 – Spark MLlib · 6:10–7:30
 
-„Für die Klassifikation vergleiche ich eine Majority-Baseline, logistische Regression, Decision Tree, Random Forest und Gradient Boosted Trees. Parameter und Schwellenwerte stammen ausschließlich aus Training und Validierung. Das finale logistische Modell wird anschließend auf Training plus Validierung neu gefittet. Auf 950 unabhängigen Testzeilen steigt Macro-F1 von 0,432 auf 0,534 und Balanced Accuracy von 0,500 auf 0,537. Die Confusion-Matrix enthält 41 richtig negative, 187 falsch positive, 76 falsch negative und 646 richtig positive Fälle. Das Modell erkennt damit beide Klassen, aber der Recall für Klasse 0 von 0,180 bleibt schwach. Regression und KMeans sind unverändert: RMSE 0,521 Grad gegenüber 3,536 Grad der Baseline und Silhouette 0,362.“
+„Für die Klassifikation vergleiche ich eine Majority-Baseline, logistische Regression, Decision Tree, Random Forest und Gradient Boosted Trees. Parameter und Schwellenwerte stammen ausschließlich aus Training und Validierung. Das finale logistische Modell wird anschließend auf Training plus Validierung neu gefittet. Auf 950 unabhängigen Testzeilen steigt Macro-F1 von 0,432 auf 0,534 und Balanced Accuracy von 0,500 auf 0,537. Die Confusion-Matrix enthält 41 richtig negative, 187 falsch positive, 76 falsch negative und 646 richtig positive Fälle. Das Modell erkennt damit beide Klassen, aber der Recall für Klasse 0 von 0,180 bleibt schwach. Auch die Regression hat nun einen Purge-Tag: RMSE 0,514 Grad gegenüber 3,557 Grad der Baseline; KMeans erreicht 0,554 Silhouette.“
 
 ## Folie 9 – Ergebnisse und Live-Demo · 7:30–8:40
 

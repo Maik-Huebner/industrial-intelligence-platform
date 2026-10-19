@@ -25,7 +25,7 @@ Dem Arbeitsauftrag lag kein separates, verbindliches Tagescurriculum bei. Die Zu
 | 17 | Window Functions | PySpark Window | `lag`, rollender Mittelwert, `lead` für ausschließlich zukünftige Targets, `rank` | `spark_jobs/transform.py` | Spark-Full-Lauf und chronologischer Holdout erfolgreich |
 | 18 | Aggregationen und Partitionierung | PySpark, Parquet | Tagesaggregation, Verteilungsanalyse, partitioniertes Parquet | `spark_jobs/transform.py` | Parquet-Artefakte je `metric_date`; 4.950 Tagesmerkmale |
 | 19 | ML-Pipelines und Evaluation | Spark MLlib | Majority-Baseline, Logistic Regression, Decision Tree, Random Forest, GBT; One-Hot-Encoding, Skalierung, Klassengewichte und Threshold-Tuning | `ml/classification.py`, `ml/metrics.py` | Finaler Test: Macro-F1 0,534 statt 0,432; beide Klassen vorhergesagt |
-| 20 | Regression, Clustering und MLOps-Einordnung | MLlib | Lineare Regression, KMeans, Modellspeicherung, chronologischer Holdout; `randomSplit` nur als Lehrdemo | `ml/train.py`: `regression_report`, `clustering_report`, `split_by_time` | RMSE 0,521; Silhouette 0,362; Modelle und `ml_report.json` gespeichert |
+| 20 | Regression, Clustering und MLOps-Einordnung | MLlib | Lineare Regression, KMeans, überschreibbare Modellspeicherung, purged chronologischer Holdout; `randomSplit` nur als Lehrdemo | `ml/train.py`: `regression_report`, `clustering_report`, `split_by_time` | RMSE 0,514; Silhouette 0,554; Modelle und `ml_report.json` gespeichert |
 
 ## Ergänzende Big-Data-Themen
 
