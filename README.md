@@ -26,27 +26,28 @@ Instandhaltungsteams müssen Messwerte, Störungen, Wartungen und technische Abh
 
 ```mermaid
 flowchart LR
-    G[Deterministischer Generator] --> PG[(PostgreSQL-Quellen)]
-    G --> MO[(MongoDB-Sensoren)]
-    G --> F[CSV und JSON]
-    G --> N[(Neo4j-Beziehungen)]
-    PG --> Q[Validierung und Quarantäne]
-    MO --> Q
-    F --> Q
-    Q --> S[Apache Spark]
-    N --> S
+    G[Deterministischer Generator] --> ST[CSV · JSON · JSONL Staging]
+    ST --> PG[(PostgreSQL)]
+    ST --> MO[(MongoDB-Sensoren)]
+    ST --> N[(Neo4j-Kontextgraph)]
+    ST --> Q[Validierung und Quarantäne]
+    ST --> S[Apache Spark]
+    Q --> L[Lokale Referenzmetriken]
     S --> P[Parquet Features]
     P --> ML[Spark MLlib]
-    ML --> R[(PostgreSQL Ergebnisse)]
-    R --> API[FastAPI]
-    N --> API
-    A[Apache Airflow] -. orchestriert .-> G
-    A -. orchestriert .-> Q
-    A -. orchestriert .-> S
-    A -. orchestriert .-> ML
+    ML --> ART[CSV/JSON-Artefakte]
+    L --> ART
+    ART --> R[(PostgreSQL Ergebnisse)]
+    ART --> API[FastAPI]
+    AF[Apache Airflow] -. orchestriert .-> G
+    AF -. orchestriert .-> Q
+    AF -. orchestriert .-> S
+    AF -. orchestriert .-> ML
+    AF -. persistiert .-> R
+    AF -. synchronisiert .-> N
 ```
 
-Airflow steuert die Ausführung. Messreihen verbleiben in MongoDB und Parquet; Neo4j enthält bewusst nur technische Beziehungen. Das verhindert eine unnötige Million Graphknoten.
+Airflow steuert die Ausführung. Messreihen verbleiben in MongoDB und Parquet; Neo4j enthält bewusst nur technische Beziehungen. Das verhindert eine unnötige Million Graphknoten. FastAPI liest aktuell die gemeinsam gemounteten CSV- und JSON-Artefakte. PostgreSQL und Neo4j sind noch keine direkten API-Quellen.
 
 ## Datenprofile
 
@@ -169,6 +170,13 @@ presentation/                 Zehn-Minuten-Präsentation und Demo-Unterlagen
 ## Dokumentation
 
 - [Architektur und Datenfluss](docs/architecture/ARCHITECTURE.md)
+- [Vollständiger End-to-End-Datenfluss](docs/architecture/END_TO_END_DATA_FLOW.md)
+- [Systemarchitektur](docs/architecture/SYSTEM_ARCHITECTURE.md)
+- [Technologieverantwortlichkeiten](docs/architecture/TECHNOLOGY_RESPONSIBILITIES.md)
+- [Data Lineage](docs/architecture/DATA_LINEAGE.md)
+- [Airflow-Ausführungsfluss](docs/architecture/AIRFLOW_EXECUTION_FLOW.md)
+- [Pipeline-Diagramm](docs/architecture/PIPELINE_DIAGRAM.md)
+- [Pipeline einfach erklärt](docs/architecture/PIPELINE_EXPLAINED_SIMPLE.md)
 - [Datenbanken](docs/databases/DATABASES.md)
 - [ETL und Datenqualität](docs/etl/ETL.md)
 - [Airflow](docs/airflow/AIRFLOW.md)

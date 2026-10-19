@@ -108,7 +108,7 @@ Kein Ergebnis ist eine industrielle Freigabe. Alle Trainingsdaten und Labels sin
 
 Fachdokumentation: `README.md` sowie die Verzeichnisse `docs/architecture`, `docs/databases`, `docs/etl`, `docs/airflow`, `docs/spark`, `docs/ml`, `docs/testing` und `docs/operations`. Die konkrete Tageszuordnung steht in `docs/COURSE_COVERAGE.md`.
 
-Aktualisierte Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Classification_Benchmark.pptx`. Die vorherige Fassung bleibt unverändert erhalten. Sprechertext, Demo, Fallback, Tutorfragen und Lernzusammenfassung liegen daneben als Markdown-Dateien.
+Aktuellste Präsentation: `presentation/Industrial_Intelligence_Platform_2026_Architecture_Audit_Final.pptx`. Sie korrigiert den dateibasierten FastAPI-Serving-Pfad, die versionierten PostgreSQL-Prognosen und die Abgrenzung des Neo4j-Kontextgraphs. Die vorherigen Fassungen bleiben unverändert erhalten. `presentation/PIPELINE_PRESENTATION_NOTES.md` ergänzt den Zwei-Minuten-Ablauf und typische technische Rückfragen.
 
 ## 11. Git, Release-Gates und Veröffentlichung
 

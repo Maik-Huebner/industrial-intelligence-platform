@@ -2,7 +2,7 @@
 
 ## Klassifikation
 
-Eine Majority-Class-Baseline, logistische Regression, Entscheidungsbaum, Random Forest und Gradient Boosted Trees klassifizieren erhöhten Wartungsbedarf. `StringIndexer`, `OneHotEncoder`, `VectorAssembler` und bei der logistischen Regression `StandardScaler` laufen in echten Spark-Pipelines. Inverse Klassengewichte werden ausschließlich aus dem Training berechnet. Der vollständige Vergleich einschließlich klassenweiser Precision, Recall und F1, Macro-F1, Balanced Accuracy, PR-AUC, ROC-AUC, Confusion Matrix und Laufzeiten steht in `CLASSIFICATION_BENCHMARK.md`.
+Eine Majority-Class-Baseline, logistische Regression, Entscheidungsbaum, Random Forest und Gradient Boosted Trees klassifizieren erhöhten Wartungsbedarf. `StringIndexer`, `OneHotEncoder`, `VectorAssembler` und bei der logistischen Regression `StandardScaler` laufen in echten Spark-Pipelines. Während Tuning und Auswahl werden inverse Klassen­gewichte ausschließlich aus dem Training berechnet. Nach dem Lock der Konfiguration berechnet der finale Refit die Gewichte auf Training plus Validierung neu. Der vollständige Vergleich einschließlich klassenweiser Precision, Recall und F1, Macro-F1, Balanced Accuracy, PR-AUC, ROC-AUC, Confusion Matrix und Laufzeiten steht in `CLASSIFICATION_BENCHMARK.md`.
 
 ## Regression
 
