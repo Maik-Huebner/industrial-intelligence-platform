@@ -109,7 +109,13 @@ Präsentation: `presentation/Industrial_Intelligence_Platform_2026.pptx`. Sprech
 
 ## 11. Git, Release-Gates und Veröffentlichung
 
-Die lokalen Release-Gates umfassen Tests, Full-DAG, Compose-Validierung, Gesundheitsprüfungen, Secret-Suche, Größenprüfung und Diff-Check. Lokale Commits werden nach Abschluss dieser Gates erstellt und ihre IDs anschließend hier ergänzt.
+Die lokalen Release-Gates umfassten Tests, Full-DAG, Compose-Validierung, Gesundheitsprüfungen, Secret-Suche, Größenprüfung und Diff-Check. Folgende abgeschlossene Entwicklungsschritte wurden lokal auf `main` versioniert:
+
+- `1ccd177` – `feat: implement industrial intelligence platform`
+- `639580f` – `test: add integration and end-to-end evidence`
+- `fecfb51` – `docs: complete documentation and final presentation`
+
+Eine abschließende Statusaktualisierung dokumentiert Release-Prüfung und Publikationsblocker. Der vollständige, maßgebliche Stand ist über `git log --oneline` nachvollziehbar.
 
 **GitHub-Repository-URL:** nicht vorhanden. Die Veröffentlichung ist nicht fehlgeschlagen, sondern kontrolliert ausgesetzt, bis `gh auth status` eine gültige und eindeutig autorisierte Identität bestätigt. Es gab keinen Force-Push und keine Annahme eines Benutzernamens.
 
@@ -119,4 +125,3 @@ Die lokalen Release-Gates umfassen Tests, Full-DAG, Compose-Validierung, Gesundh
 - Existenz eines gleichnamigen Repositories kontrollieren.
 - Erst dann öffentliches Repository anlegen, `main` pushen und lokalen/remote Commit vergleichen.
 - Für einen realen Pilotbetrieb echte Historien, fachlich validierte Labels, Alarmkosten, Security, Monitoring und Betriebs-SLAs ergänzen.
-

@@ -5,9 +5,16 @@ Unit-Tests prüfen Konfiguration, deterministische IDs, 50 konsistente Maschinen
 ```bash
 make test
 PYTHONPATH=src .venv/bin/pytest tests/unit
-RUN_CONTAINER_TESTS=1 PYTHONPATH=src .venv/bin/pytest -m integration
+RUN_CONTAINER_TESTS=1 EXPECTED_PROFILE=full PYTHONPATH=src .venv/bin/pytest -m integration
 docker compose exec airflow-scheduler airflow dags test industrial_etl 2026-10-19
 ```
 
 Spark- und Full-Profil-Läufe sind getrennt, damit schnelle Änderungen nicht durch lange Tests blockiert werden. Ausführungsnachweise stehen im Abschlussbericht; der Text unterscheidet bestanden, übersprungen und nicht ausgeführt.
 
+## Ausgeführter Abnahmestand vom 19. Oktober 2026
+
+- 12 schnelle Unit-/E2E-Tests bestanden, 4 Integrationstests in diesem Lauf abgewählt; Coverage 53 Prozent.
+- 4 Containerintegrationstests gegen PostgreSQL, MongoDB und Neo4j mit `EXPECTED_PROFILE=full` bestanden.
+- Airflow-DAG-Import ohne Fehler; `industrial_etl` mit allen zehn Tasks gelistet.
+- Vollständiger Airflow-DAG mit einer Million Messungen erfolgreich.
+- MLlib-Airflow-Task nach Pfadkorrektur erneut erfolgreich; Report und Modelle im gemeinsamen Volume gespeichert.
